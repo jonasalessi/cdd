@@ -1,0 +1,33 @@
+# Example CDD CLI Configuration
+
+# The maximum allowed complexity (ICP) per class.
+# If a class exceeds this, it will be flagged in the report.
+limit: 10.0
+
+# SLOC (Source Lines of Code) limits.
+sloc:
+  # The maximum physical SLOC for a single method.
+  methodLimit: 24
+
+# Configuration for detecting internal project coupling.
+internalCoupling:
+  # Automatically detect internal packages based on the scanned files.
+  autoDetect: true
+  # Explicitly defined internal packages.
+  packages:
+    - "com.cdd"
+
+# File patterns to include or exclude from analysis.
+include:
+  - "src/main/kotlin/**/*.kt"
+  - "src/main/java/**/*.java"
+exclude:
+  - "**/test/**"
+  - "**/build/**"
+
+# Reporting options.
+reporting:
+  # Default output format (console, json, xml, markdown).
+  format: "console"
+  # Whether to output extra debug information.
+  verbose: true

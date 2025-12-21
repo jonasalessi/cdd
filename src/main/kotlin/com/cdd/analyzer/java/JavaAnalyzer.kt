@@ -2,7 +2,9 @@ package com.cdd.analyzer.java
 
 import com.cdd.analyzer.LanguageAnalyzer
 import com.cdd.core.config.CddConfig
+import com.cdd.core.config.ConfigurationManager
 import com.cdd.domain.*
+import org.slf4j.LoggerFactory
 import spoon.Launcher
 import spoon.reflect.CtModel
 import spoon.reflect.declaration.CtClass
@@ -16,6 +18,8 @@ import spoon.reflect.reference.CtPackageReference
 import java.io.File
 
 class JavaAnalyzer : LanguageAnalyzer {
+    private val logger = LoggerFactory.getLogger(this::class.java)
+
     override val supportedExtensions: List<String> = listOf("java")
     override val languageName: String = "Java"
 
@@ -37,8 +41,7 @@ class JavaAnalyzer : LanguageAnalyzer {
                 totalIcp = classes.sumOf { it.totalIcp }
             )
         } catch (e: Exception) {
-            println("Error analyzing ${file.name}: ${e.message}")
-            e.printStackTrace()
+            logger.error("Error analyzing ${file.name}: ${e.message}", e)
             AnalysisResult(
                 file = file.absolutePath,
                 classes = emptyList(),

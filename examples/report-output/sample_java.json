@@ -1,0 +1,121 @@
+{
+    "totalFiles": 1,
+    "totalClasses": 1,
+    "totalIcp": 3.0,
+    "averageIcp": 3.0,
+    "classesOverLimit": [
+    ],
+    "icpDistribution": {
+        "CODE_BRANCH": 2,
+        "CONDITION": 1,
+        "EXCEPTION_HANDLING": 0,
+        "INTERNAL_COUPLING": 0,
+        "EXTERNAL_COUPLING": 0
+    },
+    "largestClasses": [
+        {
+            "name": "SimpleJava",
+            "packageName": "com.sample",
+            "lineRange": {
+                "start": 3,
+                "endInclusive": 11
+            },
+            "totalIcp": 3.0,
+            "icpBreakdown": {
+                "CODE_BRANCH": [
+                    {
+                        "type": "CODE_BRANCH",
+                        "line": 5,
+                        "column": 9,
+                        "description": "if branch",
+                        "weight": 1.0
+                    },
+                    {
+                        "type": "CODE_BRANCH",
+                        "line": 7,
+                        "column": 16,
+                        "description": "else branch",
+                        "weight": 1.0
+                    }
+                ],
+                "CONDITION": [
+                    {
+                        "type": "CONDITION",
+                        "line": 5,
+                        "column": 13,
+                        "description": "condition expression",
+                        "weight": 1.0
+                    }
+                ]
+            },
+            "methods": [
+                {
+                    "name": "process",
+                    "lineRange": {
+                        "start": 4,
+                        "endInclusive": 10
+                    },
+                    "totalIcp": 3.0,
+                    "icpBreakdown": {
+                        "CODE_BRANCH": [
+                            {
+                                "type": "CODE_BRANCH",
+                                "line": 5,
+                                "column": 9,
+                                "description": "if branch",
+                                "weight": 1.0
+                            },
+                            {
+                                "type": "CODE_BRANCH",
+                                "line": 7,
+                                "column": 16,
+                                "description": "else branch",
+                                "weight": 1.0
+                            }
+                        ],
+                        "CONDITION": [
+                            {
+                                "type": "CONDITION",
+                                "line": 5,
+                                "column": 13,
+                                "description": "condition expression",
+                                "weight": 1.0
+                            }
+                        ]
+                    },
+                    "sloc": {
+                        "total": 7,
+                        "codeOnly": 7,
+                        "withComments": 7,
+                        "comments": 0,
+                        "blankLines": 0
+                    }
+                }
+            ],
+            "isOverLimit": false,
+            "sloc": {
+                "total": 9,
+                "codeOnly": 9,
+                "withComments": 9,
+                "comments": 0,
+                "blankLines": 0
+            }
+        }
+    ],
+    "slocMetrics": {
+        "totalSloc": 9,
+        "averageSlocPerClass": 9.0,
+        "averageSlocPerMethod": 7.0,
+        "medianSlocPerMethod": 7,
+        "slocStdDev": 0.0,
+        "slocDistribution": {
+            "0": 1
+        }
+    },
+    "icpSlocCorrelation": 0.0,
+    "methodsOverSlocLimit": [
+    ],
+    "suggestions": [
+        "No classes exceed the complexity limit. Good job!"
+    ]
+}
