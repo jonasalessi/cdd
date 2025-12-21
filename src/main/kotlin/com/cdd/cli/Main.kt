@@ -1,6 +1,7 @@
 package com.cdd.cli
 
 import com.cdd.analyzer.java.JavaAnalyzer
+import com.cdd.analyzer.kotlin.KotlinAnalyzer
 import com.cdd.core.aggregator.IcpAggregator
 import com.cdd.core.config.CddConfig
 import com.cdd.core.config.ConfigurationManager
@@ -40,6 +41,7 @@ class CddCli : CliktCommand(name = "cdd-cli", help = "Cognitive-Driven Developme
 
     private fun registerAnalyzers() {
         AnalyzerRegistry.register(JavaAnalyzer())
+        AnalyzerRegistry.register(KotlinAnalyzer())
     }
 
     override fun run() {
