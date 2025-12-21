@@ -31,3 +31,6 @@ build
 .kotlin
 .vscode
 .idea
+htmlReport
+.prd
+.DS_Store
