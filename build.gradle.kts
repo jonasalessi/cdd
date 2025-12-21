@@ -80,6 +80,9 @@ graalvmNative {
             mainClass.set("com.cdd.cli.MainKt")
             buildArgs.add("--no-fallback")
             buildArgs.add("--enable-https")
+            buildArgs.add("--report-unsupported-elements-at-runtime")
+            buildArgs.add("-H:+AddAllCharsets")
+            buildArgs.add("-O2")
         }
     }
 }

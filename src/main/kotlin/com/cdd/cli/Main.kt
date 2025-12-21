@@ -20,8 +20,20 @@ import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 import kotlin.system.exitProcess
 
-class CddCli : CliktCommand(name = "cdd-cli", help = "Cognitive-Driven Development Analyzer") {
-    val path by argument(help = "Directory or file to analyze").file(mustExist = true, canBeFile = true, canBeDir = true)
+class CddCli : CliktCommand(
+    name = "cdd-cli",
+    help = "Cognitive-Driven Development Analyzer"
+) {
+    init {
+        // Required for Kotlin compiler to work in GraalVM native image
+        System.setProperty("kotlin.compiler.unit.test", "true")
+        versionOption("0.1.0")
+        registerAnalyzers()
+        registerReporters()
+    }
+
+    private val path by argument(help = "Directory or file to analyze")
+        .file(mustExist = true, canBeFile = true, canBeDir = true)
     
     val limit by option(help = "ICP limit (default: 10)").double()
     val slocLimit by option("--sloc-limit", help = "SLOC limit for methods (default: 24)").int()
@@ -35,11 +47,6 @@ class CddCli : CliktCommand(name = "cdd-cli", help = "Cognitive-Driven Developme
     val failOnViolations by option("--fail-on-violations", help = "Exit with code 1 if violations found").flag(default = false)
     val verbose by option("-v", "--verbose", help = "Verbose output").flag(default = false)
     
-    init {
-        versionOption("0.1.0")
-        registerAnalyzers()
-        registerReporters()
-    }
 
     private fun registerAnalyzers() {
         AnalyzerRegistry.register(JavaAnalyzer())
