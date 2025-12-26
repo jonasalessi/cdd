@@ -35,7 +35,11 @@ class EndToEndTest : FunSpec({
         return CliResult(process.exitValue(), output)
     }
 
-    test("should analyze Kotlin sample and return success") {
+    if (!executable.exists()) {
+        System.err.println("Skipping EndToEndTest because executable was not found at ${executable.absolutePath}. Run 'installDist' to enable these tests.")
+    }
+
+    test("should analyze Kotlin sample and return success").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-kotlin")
         val result = runCli(sampleDir.absolutePath)
         
@@ -45,7 +49,7 @@ class EndToEndTest : FunSpec({
         result.output shouldContain "Total ICP:               3.0"
     }
 
-    test("should fail on violations when --fail-on-violations is set") {
+    test("should fail on violations when --fail-on-violations is set").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-kotlin")
         // .cdd.yaml in that dir has limit: 2.0
         val result = runCli(sampleDir.absolutePath, "--fail-on-violations")
@@ -54,7 +58,7 @@ class EndToEndTest : FunSpec({
         result.output shouldContain "Analysis failed: 1 violations found."
     }
 
-    test("should analyze Java sample") {
+    test("should analyze Java sample").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-java")
         val result = runCli(sampleDir.absolutePath)
         
@@ -63,7 +67,7 @@ class EndToEndTest : FunSpec({
         result.output shouldContain "Total ICP:               3.0"
     }
 
-    test("should analyze mixed project") {
+    test("should analyze mixed project").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-mixed")
         val result = runCli(sampleDir.absolutePath)
         
@@ -73,7 +77,7 @@ class EndToEndTest : FunSpec({
         result.output shouldContain "Total ICP:               6.0"
     }
 
-    test("should respect --format json and --output") {
+    test("should respect --format json and --output").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-kotlin")
         val outputFile = projectRoot.resolve("build/test-results/report.json")
         outputFile.parentFile.mkdirs()
@@ -87,7 +91,7 @@ class EndToEndTest : FunSpec({
         json shouldContain "\"name\": \"SimpleKotlin\""
     }
 
-    test("should respect --include and --exclude") {
+    test("should respect --include and --exclude").config(enabled = executable.exists()) {
         val sampleDir = projectRoot.resolve("src/test/resources/sample-mixed")
         
         // Only include Kotlin
