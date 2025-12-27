@@ -2,21 +2,18 @@
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-CDD CLI is a tool designed to measure and manage code complexity based on the principles of **Cognitive-Driven Development (CDD)**. It helps developers identify areas of the code that are difficult to understand and maintain by calculating the **Intrinsic Cognitive Point (ICP)**.
+CDD CLI is a tool designed to measure and manage code complexity based on the principles of **Cognitive-Driven Development (
+CDD)**. It helps developers identify areas of the code that are difficult to understand and maintain by calculating the *
+*Intrinsic Cognitive Point (ICP)**.
 
-> [!IMPORTANT]
 > ### 🎓 Foundations in Research
 >
-> This tool is a direct implementation of the **Cognitive-Driven Development (CDD)** methodology. We strictly follow the theoretical framework established in the seminal paper:
+> This tool is a direct implementation of the **Cognitive-Driven Development (CDD)** methodology. It follows the theoretical
+> framework established in the seminal paper:
 >
-> **"Cognitive-Driven Development (CDD): A New Perspective on Code Complexity"**  
-> *Furtado, F., et al. (2024). arXiv:2408.11209 [cs.SE]*
->
-> [📖 **Read on ArXiv**](https://arxiv.org/abs/2408.11209) — [📥 **Download PDF**](https://arxiv.org/pdf/2408.11209)
->
-> ---
-> **Acknowledgements**  
-> *We extend our deepest gratitude to the authors for quantifying the "invisible burden" of cognitive load, providing the software engineering community with a scientific path towards simpler, more maintainable code.*
+> Tavares de Souza, A. L. O., Costa Pinto, V. H. S. 2020.  
+> Toward a Definition of Cognitive-Driven Development, 2020 IEEE International Conference on Software Maintenance and
+> Evolution (ICSME), pp. 776–778, https://doi.org/10.1109/ICSME46990.2020.00087
 
 ## Key Features
 
@@ -24,15 +21,13 @@ CDD CLI is a tool designed to measure and manage code complexity based on the pr
 - **ICP Calculation**: Measures complexity based on branching logic, coupling, and exception handling.
 - **SLOC Metrics**: Provides physical Source Lines of Code distribution.
 - **Actionable Recommendations**: Suggests refactoring targets based on complexity thresholds.
-- **Native Performance**: Fast startup and low memory footprint via GraalVM Native Image.
-- **Multiple Output Formats**: Supports Console (with colored output and charts), JSON, XML, and Markdown.
+- **Multiple Output Formats**: Supports Console, JSON, XML, and Markdown.
 
 ## Quick Start
 
 ### Prerequisites
 
 - **Java**: JRE 21 or higher.
-- **Native (Optional)**: Download the appropriate binary for your OS.
 
 ### Installation
 
@@ -45,41 +40,77 @@ Analyze a file or directory:
 ```bash
 # Run with JAR
 java -jar cdd-cli.jar /path/to/your/code
-
-# Run with Native Binary
-./cdd-cli /path/to/your/code
 ```
 
 ### Common Options
 
+- `<path>`: Directory or file to analyze (required).
 - `-l, --limit <double>`: Set the ICP limit per class (default: 10.0).
 - `--sloc-limit <int>`: Set the SLOC limit for methods (default: 24).
-- `--format <format>`: Output format (`console`, `json`, `xml`, `markdown`).
+- `--sloc-only`: Show only SLOC analysis (no ICP).
+- `--format <format>`: Output format: `console`, `json`, `xml`, `markdown` (default: `console`).
 - `--output <file>`: Redirect output to a file.
+- `--config <file>`: Path to a custom YAML configuration file (default: `.cdd.yml`).
+- `--include <pattern>`: Include file pattern (can be repeated).
+- `--exclude <pattern>`: Exclude file pattern (can be repeated).
+- `--method-level`: Show method-level analysis in the report.
 - `--fail-on-violations`: Exit with code 1 if any class exceeds the ICP limit.
+- `-v, --verbose`: Enable verbose output.
+- `--version`: Show the version and exit.
 
 ## Configuration
 
 CDD CLI can be configured using a `.cdd.yaml` file in your project root or via the `--config` option.
 
 ```yaml
-limit: 15.0
-sloc:
-  methodLimit: 30
+limit: 10.0 # Maximum ICP value allowed per class
+icpTypes: # Optional: custom weights for ICP types
+  BRANCH: 1.0
+  COUPLING: 1.0
+  EXCEPTION: 1.0
+classTypeLimits: { } # Optional: limits per class type (e.g., Service: 15)
+
 internalCoupling:
-  autoDetect: true
-  packages: ["com.mycompany.service"]
+  autoDetect: true # Enables automatic detection of project packages
+  packages: [ ] # List of internal packages to consider for coupling
+
+externalCoupling:
+  libraries: # List of external libraries to monitor coupling for
+    - "java.util.*"
+    - "java.io.*"
+    - "java.lang.*"
+
+include: [ ] # List of glob patterns for files to include
+exclude: [ ] # List of glob patterns for files to exclude
+
+sloc:
+  classLimit: 0 # SLOC limit for classes (0 = disabled)
+  methodLimit: 24 # SLOC limit for methods
+  warnAtMethod: 15 # SLOC threshold for warnings
+  excludeComments: true # Do not count comments in SLOC
+  excludeBlankLines: true # Do not count blank lines in SLOC
+
 reporting:
-  format: "console"
-  verbose: true
+  format: "console" # Output format (console, json, xml, markdown)
+  outputFile: null # Optional: path to write the report
+  verbose: false # Enable detailed reporting
+  showLineNumbers: true # Include line numbers in reports
+  showSuggestions: true # Provide refactoring suggestions
+  showSlocMetrics: true # Include SLOC metrics in report
+  showSlocDistribution: true # Show SLOC distribution charts
+  showCorrelation: true # Show ICP vs SLOC correlation
 ```
 
-## Binary Size & Native Image
+## Known Limitations
 
-The native binary size (~110MB) is primarily attributed to the inclusion of the Kotlin compiler internals (IntelliJ Core), which are required for robust PSI-based analysis of Kotlin files. This allows the tool to run without a full JDK installed while maintaining high parse accuracy.
+### Non-Standard Code Patterns
 
-> [!NOTE]
-> Currently, Kotlin analysis in the native binary has some resource discovery limitations. For full Kotlin support, the JAR-based distribution is recommended if you encounter issues.
+Highly dynamic code or code using heavy reflection might not have its coupling fully detected, as the analysis is primarily
+static and PSI-based.
+
+## Support
+
+For issues, please visit the [Issue Tracker](https://github.com/jonasalessi/cdd-cli/issues).
 
 ## Contributing
 
