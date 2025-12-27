@@ -3,11 +3,9 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
     kotlin("jvm") version "1.9.24"
     kotlin("plugin.serialization") version "1.9.24"
-    id("org.graalvm.buildtools.native") version "0.9.28"
     application
+    id("com.gradleup.shadow") version "9.3.0"
 }
-
-
 
 group = "com.cdd"
 version = "0.1.0-SNAPSHOT"
@@ -30,26 +28,24 @@ repositories {
 dependencies {
     // CLI Framework
     implementation("com.github.ajalt.clikt:clikt:4.2.1")
-    
+
     // Java AST Analysis (Spoon)
     implementation("fr.inria.gforge.spoon:spoon-core:11.2.1")
-    
+
     // Kotlin Compiler (for Kotlin analysis)
     implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.24")
 
 
-
-    
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     // implementation("org.jetbrains.kotlinx:kotlinx-serialization-xml:0.86.2") // Uncomment if needed
-    
+
     // YAML Config
     implementation("com.charleskorn.kaml:kaml:0.57.0")
-    
+
     // Markdown Generation
     implementation("org.commonmark:commonmark:0.21.0")
-    
+
     // Logging
     implementation("org.slf4j:slf4j-simple:2.0.9")
 
@@ -71,18 +67,4 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-}
-
-graalvmNative {
-    binaries {
-        named("main") {
-            imageName.set("cdd-cli")
-            mainClass.set("com.cdd.cli.MainKt")
-            buildArgs.add("--no-fallback")
-            buildArgs.add("--enable-https")
-            buildArgs.add("--report-unsupported-elements-at-runtime")
-            buildArgs.add("-H:+AddAllCharsets")
-            buildArgs.add("-O2")
-        }
-    }
 }
