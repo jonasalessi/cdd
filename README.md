@@ -30,11 +30,20 @@ hb
 
 ### Installation
 
-Download the latest release from the [Releases](https://github.com/jonas/icp-cli/releases) page.
+1. Download the latest release from the [Releases](https://github.com/jonas/icp-cli/releases) page.
+2. You can choose between two versions:
+   - **Distribution Zip (`cdd-cli.zip`)**: Unzip this file and add the `bin` folder to your system's `PATH`. This allows you to run `cdd-cli` directly from your terminal.
+   - **Fat JAR (`cdd-cli.jar`)**: A single executable JAR file containing all dependencies.
 
 ### Usage
 
-Analyze a file or directory:
+If you added the distribution's `bin` folder to your `PATH`:
+
+```bash
+cdd-cli /path/to/your/code
+```
+
+Alternatively, using the fat JAR:
 
 ```bash
 java -jar cdd-cli.jar /path/to/your/code

@@ -58,6 +58,26 @@ application {
     mainClass.set("com.cdd.cli.MainKt")
 }
 
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
+    archiveFileName.set("cdd-cli.jar")
+}
+
+tasks.named<Zip>("distZip") {
+    archiveFileName.set("cdd-cli.zip")
+}
+
+tasks.named<Tar>("distTar") {
+    enabled = false
+}
+
+tasks.named<Zip>("shadowDistZip") {
+    enabled = false
+}
+
+tasks.named<Tar>("shadowDistTar") {
+    enabled = false
+}
+
 tasks.withType<KotlinCompile> {
     kotlinOptions {
         freeCompilerArgs = listOf("-Xjsr305=strict")

@@ -14,27 +14,17 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
 
     - name: Set up JDK 21
       uses: actions/setup-java@v4
       with:
         java-version: '21'
-        distribution: 'graalvm'
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        native-image-job-reports: 'true'
+        distribution: 'temurin'
+        cache: 'gradle'
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
+      uses: gradle/actions/setup-gradle@v5
 
     - name: Build and Test
       run: ./gradlew build
-
-    - name: Build Native Image
-      run: ./gradlew nativeCompile
-      if: matrix.os != 'windows-latest' # Skip windows for now if it's too slow or complex in CI
-
-    - name: Build Native Image (Windows)
-      run: ./gradlew nativeCompile
-      if: matrix.os == 'windows-latest'
-      shell: cmd
