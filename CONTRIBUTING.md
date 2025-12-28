@@ -8,7 +8,7 @@ Thank you for your interest in contributing to CDD CLI! We welcome contributions
 If you find a bug, please open an issue on GitHub and include:
 - A clear description of the problem.
 - Steps to reproduce the issue.
-- Your environment details (OS, JDK version, GraalVM version).
+- Your environment details (OS, JDK version).
 - Any relevant logs or error messages.
 
 ### Requesting Features
@@ -24,17 +24,12 @@ We are always looking for ways to improve CDD CLI. If you have an idea for a new
 ## Development Setup
 
 ### Prerequisites
-- JDK 21 (GraalVM recommended)
-- Gradle 8.x
+- JDK 21
+- Gradle 9.x
 
 ### Running Tests
 ```bash
 ./gradlew test
-```
-
-### Building the Native Binary (Experimental)
-```bash
-./gradlew nativeCompile
 ```
 
 ## Community Standards

@@ -3,9 +3,8 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 CDD CLI is a tool designed to measure and manage code complexity based on the principles of **Cognitive-Driven Development (
-CDD)**. It helps developers identify areas of the code that are difficult to understand and maintain by calculating the *
-*Intrinsic Cognitive Point (ICP)**.
-
+CDD)**. It helps developers identify areas of the code that are difficult to understand and maintain by calculating the **Intrinsic Cognitive Point (ICP)**.
+hb 
 > ### 🎓 Foundations in Research
 >
 > This tool is a direct implementation of the **Cognitive-Driven Development (CDD)** methodology. It follows the theoretical
@@ -38,7 +37,6 @@ Download the latest release from the [Releases](https://github.com/jonas/icp-cli
 Analyze a file or directory:
 
 ```bash
-# Run with JAR
 java -jar cdd-cli.jar /path/to/your/code
 ```
 
