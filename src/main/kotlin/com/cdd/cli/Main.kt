@@ -36,7 +36,6 @@ class CddCli : CliktCommand(
 
     val limit by option(help = "ICP limit (default: 10)").double()
     val slocLimit by option("--sloc-limit", help = "SLOC limit for methods (default: 24)").int()
-    val slocOnly by option("--sloc-only", help = "Show only SLOC analysis (no ICP)").flag(default = false)
     val format by option(
         "--format",
         help = "Output format: console|json|xml|markdown (default: console)"
@@ -45,7 +44,6 @@ class CddCli : CliktCommand(
     val configPath by option("--config", help = "Config file path (default: .cdd.yml)").file(mustExist = true)
     val include by option("--include", help = "Include file pattern (can be repeated)").multiple()
     val exclude by option("--exclude", help = "Exclude file pattern (can be repeated)").multiple()
-    val methodLevel by option("--method-level", help = "Show method-level analysis").flag(default = false)
     val failOnViolations by option(
         "--fail-on-violations",
         help = "Exit with code 1 if violations found"

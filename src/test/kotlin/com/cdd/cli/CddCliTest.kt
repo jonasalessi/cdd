@@ -24,8 +24,7 @@ class CddCliTest : StringSpec({
 
     "cdd-cli should parse flags correctly" {
         val cli = CddCli()
-        cli.parse(listOf("src/test/resources/empty-folder", "--method-level", "--fail-on-violations"))
-        cli.methodLevel shouldBe true
+        cli.parse(listOf("src/test/resources/empty-folder", "--fail-on-violations"))
         cli.failOnViolations shouldBe true
     }
 
