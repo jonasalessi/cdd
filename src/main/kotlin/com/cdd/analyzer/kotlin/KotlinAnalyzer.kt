@@ -71,7 +71,7 @@ class KotlinAnalyzer : LanguageAnalyzer {
 
     private fun analyzeClass(ktClass: KtClass, fullContent: String, config: CddConfig): ClassAnalysis {
         val ktFile = ktClass.containingFile as KtFile
-        val scanner = KotlinIcpScanner(fullContent, config, ktFile)
+        val scanner = KotlinIcpScanner(fullContent, config, ktFile, ktClass.fqName?.asString())
         ktClass.accept(scanner)
 
         val classIcpInstances = scanner.getIcpInstances()
@@ -125,7 +125,7 @@ class KotlinAnalyzer : LanguageAnalyzer {
         val safeOffset = offset.coerceAtMost(content.length)
         return content.substring(0, safeOffset).count { it == '\n' } + 1
     }
-    
+
     private fun calculateSloc(fullContent: String, startLine: Int, endLine: Int): SlocMetrics {
         val allLines = fullContent.lines()
         val rangeStart = (startLine - 1).coerceAtLeast(0)

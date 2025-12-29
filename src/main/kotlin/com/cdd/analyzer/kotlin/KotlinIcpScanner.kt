@@ -8,18 +8,29 @@ import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
 
-class KotlinIcpScanner(val fullContent: String, val config: CddConfig, val currentKtFile: KtFile) :
-    KtTreeVisitorVoid() {
+class KotlinIcpScanner(
+    val fullContent: String, 
+    val config: CddConfig, 
+    val currentKtFile: KtFile,
+    private val analyzedClassName: String? = null
+) : KtTreeVisitorVoid() {
     private val icpInstances = mutableListOf<IcpInstance>()
+    private val seenInternalCouplings = mutableSetOf<String>()
 
     fun getIcpInstances() = icpInstances
 
     private val imports: Map<String, String> by lazy {
-        currentKtFile.importDirectives.mapNotNull { import ->
+        currentKtFile.importDirectives.filter { !it.isAllUnder }.mapNotNull { import ->
             val fqName = import.importedFqName?.asString()
             val simpleName = import.importedFqName?.shortName()?.asString()
             if (fqName != null && simpleName != null) simpleName to fqName else null
         }.toMap()
+    }
+
+    private val wildcardImports: List<String> by lazy {
+        currentKtFile.importDirectives.filter { it.isAllUnder }.mapNotNull { 
+            it.importedFqName?.asString()
+        }
     }
 
     private fun addInstance(type: IcpType, element: PsiElement, description: String) {
@@ -127,7 +138,9 @@ class KotlinIcpScanner(val fullContent: String, val config: CddConfig, val curre
             if (!isJdkType(text)) {
                 val resolvedFqName = imports[text] ?: text
                 if (isInternal(resolvedFqName)) {
-                    addInstance(IcpType.INTERNAL_COUPLING, expression, "Internal coupling (call): $resolvedFqName")
+                    if (seenInternalCouplings.add(resolvedFqName)) {
+                        addInstance(IcpType.INTERNAL_COUPLING, expression, "Internal coupling (call): $resolvedFqName")
+                    }
                 }
             }
         }
@@ -135,7 +148,6 @@ class KotlinIcpScanner(val fullContent: String, val config: CddConfig, val curre
     }
 
     override fun visitConstructorCalleeExpression(constructorCalleeExpression: KtConstructorCalleeExpression) {
-        constructorCalleeExpression.typeReference?.let { analyzeTypeReference(it) }
         super.visitConstructorCalleeExpression(constructorCalleeExpression)
     }
 
@@ -150,7 +162,9 @@ class KotlinIcpScanner(val fullContent: String, val config: CddConfig, val curre
 
         val resolvedFqName = imports[text] ?: text
         if (isInternal(resolvedFqName)) {
-            addInstance(IcpType.INTERNAL_COUPLING, typeReference, "Internal coupling: $resolvedFqName")
+            if (seenInternalCouplings.add(resolvedFqName)) {
+                addInstance(IcpType.INTERNAL_COUPLING, typeReference, "Internal coupling: $resolvedFqName")
+            }
         }
     }
 
@@ -180,9 +194,75 @@ class KotlinIcpScanner(val fullContent: String, val config: CddConfig, val curre
         return listOf("String", "Int", "Long", "Boolean", "Double", "Float", "Any", "Unit").contains(name)
     }
 
-    private fun isInternal(qualifiedName: String): Boolean {
-        return config.internalCoupling.packages.any { pkg ->
-            qualifiedName.startsWith("$pkg.") || qualifiedName == pkg
+    private fun isInternal(name: String): Boolean {
+        // Step 0: Avoid self-coupling
+        if (analyzedClassName != null) {
+            if (name == analyzedClassName) return false
+            val simpleAnalyzedName = analyzedClassName.substringAfterLast('.')
+            if (name == simpleAnalyzedName) return false
+        }
+
+        // Check if name is already fully qualified and internal
+        val isExplicitlyInternal = config.internalCoupling.packages.any { pkg ->
+            name.startsWith("$pkg.") || name == pkg
+        }
+        if (isExplicitlyInternal) return true
+
+        // If it's a simple name (no dots), it might be in the same package or wildcard imported
+        if (!name.contains(".")) {
+            // Heuristic: classes/types start with Uppercase in Kotlin
+            if (name.isEmpty() || !name[0].isUpperCase()) return false
+
+            // 1. Check if defined in SAME file (most specific)
+            if (isDefinedInFile(name)) {
+                // Return true only if it's NOT the class itself (already checked but just in case)
+                return true
+            }
+
+            // 2. Check current package
+            val currentPackage = currentKtFile.packageFqName.asString()
+            if (currentPackage.isNotEmpty()) {
+                val isCurrentPackageInternal = config.internalCoupling.packages.any { pkg ->
+                    currentPackage.startsWith("$pkg.") || currentPackage == pkg
+                }
+                if (isCurrentPackageInternal) {
+                    // Precedence: current package should ideally win unless there is an external wildcard 
+                    // that might override it. In most compilers, local package wins.
+                    // But if there's an external wildcard, we might be ambiguous (e.g. @Entity).
+                    // However, @Entity is almost never in the same package as business domain.
+                    
+                    val hasExternalWildcard = wildcardImports.any { wildcardPkg ->
+                        !config.internalCoupling.packages.any { pkg ->
+                            wildcardPkg.startsWith("$pkg.") || wildcardPkg == pkg
+                        }
+                    }
+                    if (!hasExternalWildcard) return true
+                }
+            }
+
+            // 3. Check internal wildcard imports
+            val hasInternalWildcard = wildcardImports.any { wildcardPkg ->
+                config.internalCoupling.packages.any { pkg ->
+                    wildcardPkg.startsWith("$pkg.") || wildcardPkg == pkg
+                }
+            }
+            if (hasInternalWildcard) {
+                val hasExternalWildcard = wildcardImports.any { wildcardPkg ->
+                    !config.internalCoupling.packages.any { pkg ->
+                        wildcardPkg.startsWith("$pkg.") || wildcardPkg == pkg
+                    }
+                }
+                if (!hasExternalWildcard) return true
+            }
+        }
+
+        return false
+    }
+
+    private fun isDefinedInFile(name: String): Boolean {
+        // Check top-level classes and objects in the same file
+        return currentKtFile.declarations.any { 
+            it is KtClassOrObject && it.name == name
         }
     }
 }
