@@ -42,7 +42,7 @@ class CddCli : CliktCommand(
         help = "Output format: console|json|xml|markdown (default: console)"
     ).enum<OutputFormat> { it.name.lowercase() }.default(OutputFormat.CONSOLE)
     val output by option("--output", help = "Output file (default: stdout)").file()
-    val configPath by option("--config", help = "Config file path (default: .cdd.yml)").file(mustExist = true)
+    val configPath by option("--config", help = "Config file path (default: .cdd.yaml)").file(mustExist = true)
     val include by option("--include", help = "Include file pattern (can be repeated)").multiple()
     val exclude by option("--exclude", help = "Exclude file pattern (can be repeated)").multiple()
     val failOnViolations by option(

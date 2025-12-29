@@ -2,6 +2,7 @@ package com.cdd.analyzer.kotlin
 
 import com.cdd.analyzer.LanguageAnalyzer
 import com.cdd.core.config.CddConfig
+import com.cdd.core.util.CommentUtils
 import com.cdd.domain.*
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
@@ -71,9 +72,8 @@ class KotlinAnalyzer : LanguageAnalyzer {
     }
 
     private fun analyzeClass(ktClass: KtClass, fullContent: String, config: CddConfig): ClassAnalysis {
-        val scanner = IcpScanner(fullContent, config)
         val ktFile = ktClass.containingFile as KtFile
-        scanner.setKtFile(ktFile)
+        val scanner = IcpScanner(fullContent, config, ktFile)
         ktClass.accept(scanner)
 
         val classIcpInstances = scanner.getIcpInstances()
@@ -179,25 +179,18 @@ class KotlinAnalyzer : LanguageAnalyzer {
     }
 
 
-    private inner class IcpScanner(val fullContent: String, val config: CddConfig) : KtTreeVisitorVoid() {
+    private inner class IcpScanner(val fullContent: String, val config: CddConfig, val currentKtFile: KtFile) :
+        KtTreeVisitorVoid() {
         private val icpInstances = mutableListOf<IcpInstance>()
-
-        // it.containingFile is tricky inside IcpScanner initialization. 
-        // I'll just pass the ktFile to the scanner.
-        private var currentKtFile: KtFile? = null
 
         fun getIcpInstances() = icpInstances
 
-        fun setKtFile(ktFile: KtFile) {
-            currentKtFile = ktFile
-        }
-
         private val imports: Map<String, String> by lazy {
-            currentKtFile?.importDirectives?.mapNotNull { import ->
+            currentKtFile.importDirectives.mapNotNull { import ->
                 val fqName = import.importedFqName?.asString()
                 val simpleName = import.importedFqName?.shortName()?.asString()
                 if (fqName != null && simpleName != null) simpleName to fqName else null
-            }?.toMap() ?: emptyMap()
+            }.toMap()
         }
 
         private fun addInstance(type: IcpType, element: PsiElement, description: String) {
@@ -205,7 +198,6 @@ class KotlinAnalyzer : LanguageAnalyzer {
             val column = getColumnNumber(fullContent, element.startOffset)
             val weight = config.icpTypes[type] ?: type.defaultWeight
 
-            File("cdd_debug.log").appendText("CDD_DEBUG_KOTLIN: $type at line $line: $description\n")
             icpInstances.add(IcpInstance(type, line, column, description, weight))
         }
 
@@ -361,11 +353,11 @@ class KotlinAnalyzer : LanguageAnalyzer {
 
     override fun stripComments(line: String): String {
         val stripFn = { l: String ->
-            com.cdd.core.util.CommentUtils.stripLineComment(
-                com.cdd.core.util.CommentUtils.stripBlockComments(l)
+            CommentUtils.stripLineComment(
+                CommentUtils.stripBlockComments(l)
             )
         }
-        return if (com.cdd.core.util.CommentUtils.hasCode(line, stripFn)) {
+        return if (CommentUtils.hasCode(line, stripFn)) {
             stripFn(line).trimEnd()
         } else {
             line

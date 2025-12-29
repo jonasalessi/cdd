@@ -69,7 +69,7 @@ java -jar cdd-cli.jar /path/to/your/code
 
 ## Configuration
 
-CDD CLI can be configured using a `.cdd.yaml`, `.cdd.yml`, or `.cdd.json` file in your project root or via the `--config` option.
+CDD CLI can be configured using a `.cdd.yaml` or `.cdd.yml` file in your project root or via the `--config` option.
 
 ```yaml
 limit: 10.0 # Maximum ICP value allowed per class
