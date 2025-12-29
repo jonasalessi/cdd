@@ -285,8 +285,6 @@ class KotlinAnalyzer : LanguageAnalyzer {
                     val resolvedFqName = imports[text] ?: text
                     if (isInternal(resolvedFqName)) {
                         addInstance(IcpType.INTERNAL_COUPLING, expression, "Internal coupling (call): $resolvedFqName")
-                    } else if (resolvedFqName.contains('.') || !isCommonType(text)) {
-                        addInstance(IcpType.EXTERNAL_COUPLING, expression, "External coupling (call): $resolvedFqName")
                     }
                 }
             }
@@ -310,11 +308,6 @@ class KotlinAnalyzer : LanguageAnalyzer {
             val resolvedFqName = imports[text] ?: text
             if (isInternal(resolvedFqName)) {
                 addInstance(IcpType.INTERNAL_COUPLING, typeReference, "Internal coupling: $resolvedFqName")
-            } else if (resolvedFqName.contains('.') || !isCommonType(text)) {
-                // If it has a dot, it was either imported or fully qualified -> definite external coupling
-                // If it doesn't have a dot but it's not a common type, it might be external but we're less sure without BindingContext
-                // However, for testing purposes, we'll count it if it's not a common type.
-                addInstance(IcpType.EXTERNAL_COUPLING, typeReference, "External coupling: $resolvedFqName")
             }
         }
 

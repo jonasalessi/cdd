@@ -20,17 +20,6 @@ data class InternalCouplingConfig(
     val packages: List<String> = emptyList()
 )
 
-/**
- * Configuration for External Coupling detection.
- */
-@Serializable
-data class ExternalCouplingConfig(
-    val libraries: List<String> = listOf(
-        "java.util.*",
-        "java.io.*",
-        "java.lang.*"
-    )
-)
 
 /**
  * Configuration for SLOC (Source Lines of Code) metrics.
@@ -68,7 +57,6 @@ data class CddConfig(
     val icpTypes: Map<IcpType, Double> = IcpType.entries.associateWith { it.defaultWeight },
     val classTypeLimits: Map<String, Int> = emptyMap(),
     val internalCoupling: InternalCouplingConfig = InternalCouplingConfig(),
-    val externalCoupling: ExternalCouplingConfig = ExternalCouplingConfig(),
     val include: List<String> = emptyList(),
     val exclude: List<String> = emptyList(),
     val sloc: SlocConfig = SlocConfig(),

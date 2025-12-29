@@ -35,40 +35,37 @@ class ConfigurationManagerTest : DescribeSpec({
             yamlFile.delete()
         }
 
-        it("should load valid JSON configuration") {
-            val jsonContent = """
-                {
-                  "limit": 20,
-                  "sloc": {
-                    "methodLimit": 40
-                  }
-                }
+        it("should load valid YAML configuration from .cdd.yaml") {
+            val yamlContent = """
+                limit: 20
+                sloc:
+                  methodLimit: 40
             """.trimIndent()
-            val jsonFile = File(tempDir, ".cdd.json")
-            jsonFile.writeText(jsonContent)
+            val yamlFile = File(tempDir, ".cdd.yaml")
+            yamlFile.writeText(yamlContent)
 
             val config = ConfigurationManager.loadConfig(tempDir)
-            config.limit shouldBe 20
+            config.limit shouldBe 20.0
             config.sloc.methodLimit shouldBe 40
             
-            jsonFile.delete()
+            yamlFile.delete()
         }
 
-        it("should prefer YAML over JSON if both exist") {
-            val yamlContent = "limit: 15"
-            val jsonContent = "{\"limit\": 20}"
+        it("should prefer .cdd.yml over .cdd.yaml if both exist") {
+            val ymlContent = "limit: 15"
+            val yamlContent = "limit: 20"
             
-            val yamlFile = File(tempDir, ".cdd.yml")
-            val jsonFile = File(tempDir, ".cdd.json")
+            val ymlFile = File(tempDir, ".cdd.yml")
+            val yamlFile = File(tempDir, ".cdd.yaml")
             
+            ymlFile.writeText(ymlContent)
             yamlFile.writeText(yamlContent)
-            jsonFile.writeText(jsonContent)
 
             val config = ConfigurationManager.loadConfig(tempDir)
-            config.limit shouldBe 15
+            config.limit shouldBe 15.0
             
+            ymlFile.delete()
             yamlFile.delete()
-            jsonFile.delete()
         }
 
         it("should fallback to defaults if parsing fails") {

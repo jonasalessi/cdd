@@ -105,7 +105,6 @@ object DebugLogGenerator {
         IcpType.CONDITION -> "Condition"
         IcpType.EXCEPTION_HANDLING -> "Exception"
         IcpType.INTERNAL_COUPLING -> "Internal"
-        IcpType.EXTERNAL_COUPLING -> "External"
     }
 
     /**

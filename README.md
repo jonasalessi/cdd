@@ -78,18 +78,11 @@ icpTypes: # Optional: custom weights for ICP types
   CONDITION: 1.0
   EXCEPTION_HANDLING: 1.0
   INTERNAL_COUPLING: 1.0
-  EXTERNAL_COUPLING: 0.5
 classTypeLimits: { } # Optional: limits per class type (e.g., Service: 15)
 
 internalCoupling:
   autoDetect: true # Enables automatic detection of project packages
   packages: [ ] # List of internal packages to consider for coupling
-
-externalCoupling:
-  libraries: # List of external libraries to monitor coupling for
-    - "java.util.*"
-    - "java.io.*"
-    - "java.lang.*"
 
 include: [ ] # List of glob patterns for files to include
 exclude: [ ] # List of glob patterns for files to exclude

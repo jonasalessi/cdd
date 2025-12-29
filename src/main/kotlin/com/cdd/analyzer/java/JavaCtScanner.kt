@@ -105,8 +105,6 @@ class JavaCtScanner(val config: CddConfig) : CtScanner() {
 
             if (isInternal) {
                 addInstance(IcpType.INTERNAL_COUPLING, reference, "Internal coupling: $qualifiedName")
-            } else if (!isJdkType(reference)) {
-                addInstance(IcpType.EXTERNAL_COUPLING, reference, "External coupling: $qualifiedName")
             }
         }
         super.visitCtTypeReference(reference)

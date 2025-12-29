@@ -152,8 +152,7 @@ class IcpAggregator {
                 suggestions.add("Exception handling accounts for >20% of total complexity. Consider a more centralized error handling strategy or using functional error handling.")
             }
 
-            val couplingIcp =
-                (distribution[IcpType.INTERNAL_COUPLING] ?: 0) + (distribution[IcpType.EXTERNAL_COUPLING] ?: 0) * 0.5
+            val couplingIcp = (distribution[IcpType.INTERNAL_COUPLING] ?: 0).toDouble()
             if (couplingIcp / totalIcp > 0.4) {
                 suggestions.add("Coupling accounts for a large portion of complexity. Consider extracting high-coupling logic into specialized services or using interfaces to decouple components.")
             }

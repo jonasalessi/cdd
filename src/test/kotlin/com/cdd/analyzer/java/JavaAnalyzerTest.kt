@@ -70,13 +70,9 @@ class JavaAnalyzerTest : FunSpec({
         val classAnalysis = result.classes.first()
         
         val internal = classAnalysis.icpBreakdown[IcpType.INTERNAL_COUPLING] ?: emptyList()
-        val external = classAnalysis.icpBreakdown[IcpType.EXTERNAL_COUPLING] ?: emptyList()
         
         // Internal: User field, User parameter = 2.
         internal.size shouldBe 2 
-        
-        // External: List, String, ArrayList are all JDK types and should be excluded.
-        external.size shouldBe 0
     }
 
     test("should calculate SLOC metrics correctly") {

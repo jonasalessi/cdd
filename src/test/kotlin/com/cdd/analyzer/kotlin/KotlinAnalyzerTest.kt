@@ -15,9 +15,6 @@ class KotlinAnalyzerTest : StringSpec({
         icpTypes = IcpType.values().associateWith { it.defaultWeight },
         classTypeLimits = emptyMap(),
         internalCoupling = InternalCouplingConfig(autoDetect = true, packages = listOf("com.example")),
-        externalCoupling = ExternalCouplingConfig(),
-        include = listOf("**/*.kt"),
-        exclude = emptyList(),
         reporting = ReportingConfig()
     )
 
@@ -79,10 +76,8 @@ class KotlinAnalyzerTest : StringSpec({
         val classAnalysis = result.classes.first()
         
         // Internal coupling: User
-        // External coupling: Lib
         
         classAnalysis.icpBreakdown[IcpType.INTERNAL_COUPLING]?.size shouldBe 1
-        classAnalysis.icpBreakdown[IcpType.EXTERNAL_COUPLING]?.size shouldBe 1
     }
 
     "should calculate SLOC metrics correctly" {
