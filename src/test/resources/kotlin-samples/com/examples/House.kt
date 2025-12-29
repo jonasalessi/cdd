@@ -1,0 +1,4 @@
+class House {
+    fun hello() {
+    }
+}

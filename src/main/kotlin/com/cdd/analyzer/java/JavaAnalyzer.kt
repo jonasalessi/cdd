@@ -66,6 +66,7 @@ class JavaAnalyzer : LanguageAnalyzer {
 
             MethodAnalysis(
                 name = ctMethod.simpleName,
+                className = ctClass.simpleName,
                 lineRange = methodRange.toSerializable(),
                 totalIcp = methodIcpInstances.sumOf { it.weight },
                 icpBreakdown = methodIcpBreakdown,

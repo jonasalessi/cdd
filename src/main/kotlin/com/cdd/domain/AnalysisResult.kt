@@ -35,6 +35,7 @@ data class ClassAnalysis(
 @Serializable
 data class MethodAnalysis(
     val name: String,
+    val className: String,
     val lineRange: IntRangeSerializable,
     val totalIcp: Double,
     val icpBreakdown: Map<IcpType, List<IcpInstance>>,

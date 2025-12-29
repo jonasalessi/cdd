@@ -20,7 +20,8 @@ import kotlin.io.path.writeText
  * with its associated ICP instances, showing the complexity breakdown by type (branches, conditions, etc.).
  */
 object DebugLogGenerator {
-    private val DEFAULT_LOG_FILENAME = "cdd-debug-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.log"
+    private val DEFAULT_LOG_FILENAME =
+        "cdd-debug-${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"))}.log"
     private const val FILE_SEPARATOR = "------"
     private const val ICP_COMMENT_PREFIX = " //ICP= "
 
@@ -65,6 +66,10 @@ object DebugLogGenerator {
         icpByLine: Map<Int, List<IcpInstance>>,
         logFile: Path
     ) {
+        if (icpByLine.isEmpty()) {
+            logFile.appendText("NO ICPs\n")
+            return
+        }
         file.readLines().forEachIndexed { index, line ->
             val lineNumber = index + 1
             val lineIcps = icpByLine[lineNumber]

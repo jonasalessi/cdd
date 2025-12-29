@@ -138,4 +138,34 @@ class IcpAggregatorTest : FunSpec({
         val aggregated = aggregator.aggregate(results, config)
         aggregated.suggestions.any { it.contains("Strong correlation") } shouldBe true
     }
+
+    test("should include class name in method suggestions") {
+        val method = MethodAnalysis(
+            name = "complexMethod",
+            className = "MyClass",
+            lineRange = IntRangeSerializable(10, 50),
+            totalIcp = 15.0, // Over limit (10.0)
+            icpBreakdown = emptyMap(),
+            sloc = SlocMetrics(100, 80, 90, 10, 10),
+            isOverSlocLimit = true
+        )
+        val clazz = ClassAnalysis(
+            name = "MyClass",
+            packageName = "com.example",
+            lineRange = IntRangeSerializable(1, 100),
+            totalIcp = 15.0,
+            icpBreakdown = emptyMap(),
+            methods = listOf(method),
+            isOverLimit = true,
+            sloc = SlocMetrics(100, 80, 90, 10, 10)
+        )
+        val results = listOf(AnalysisResult("MyClass.kt", listOf(clazz), 15.0))
+
+        val aggregated = aggregator.aggregate(results, config)
+        
+        // Should contain suggestion for method SLOC limit and ICP limit
+        aggregated.suggestions.any { it.contains("MyClass.complexMethod") } shouldBe true
+        aggregated.suggestions.any { it.contains("Consider extracting logic from 'MyClass.complexMethod'") } shouldBe true
+        aggregated.suggestions.any { it.contains("Method 'MyClass.complexMethod' is highly complex") } shouldBe true
+    }
 })

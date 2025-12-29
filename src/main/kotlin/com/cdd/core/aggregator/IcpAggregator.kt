@@ -170,7 +170,7 @@ class IcpAggregator {
         if (overSloc.isNotEmpty()) {
             suggestions.add("${overSloc.size} methods exceed the ${config.sloc.methodLimit} SLOC threshold. Breaking these down is highly recommended.")
             overSloc.take(3).forEach { method ->
-                suggestions.add("  - Consider extracting logic from '${method.name}' (${method.sloc.total} SLOC).")
+                suggestions.add("  - Consider extracting logic from '${method.className}.${method.name}' (${method.sloc.total} SLOC).")
             }
         }
 
@@ -180,7 +180,7 @@ class IcpAggregator {
             highIcpMethods.take(3).forEach { method ->
                 if (method.totalIcp > config.limit * 0.8) {
                     suggestions.add(
-                        "Method '${method.name}' is highly complex (${
+                        "Method '${method.className}.${method.name}' is highly complex (${
                             String.format(
                                 "%.1f",
                                 method.totalIcp
@@ -189,7 +189,7 @@ class IcpAggregator {
                     )
                 } else {
                     suggestions.add(
-                        "Method '${method.name}' is approaching the complexity limit (${
+                        "Method '${method.className}.${method.name}' is approaching the complexity limit (${
                             String.format(
                                 "%.1f",
                                 method.totalIcp
