@@ -27,8 +27,8 @@ class KotlinAnalyzerTest : StringSpec({
         val classAnalysis = result.classes.first()
         classAnalysis.name shouldBe "SampleConstructs"
 
-        classAnalysis.icpBreakdown[IcpType.CODE_BRANCH]?.size shouldBe 5
-        classAnalysis.icpBreakdown[IcpType.CONDITION]?.size shouldBe 6
+        classAnalysis.icpBreakdown[IcpType.CODE_BRANCH]?.size shouldBe 3
+        classAnalysis.icpBreakdown[IcpType.CONDITION]?.size shouldBe 5
     }
 
     "should detect control flow in SampleControlFlow.kt" {
@@ -83,5 +83,20 @@ class KotlinAnalyzerTest : StringSpec({
 
         classAnalysis.sloc.total shouldBeGreaterThan 0
         classAnalysis.sloc.codeOnly shouldBeGreaterThan 0
+    }
+
+    "should count safe call as branch but not condition" {
+        val file = File("src/test/resources/kotlin-samples/SafeCallTest.kt")
+        val result = analyzer.analyze(file, config)
+        val classAnalysis = result.classes.first()
+
+        // 1. Safe call only (fieldErrors?.size) -> 0 ICP
+        // 2. Safe call + let (lambda) (fieldErrors?.let { ... }) -> 1 Branch (lambda)
+        // 3. Elvis (fieldErrors ?: ...) -> 1 Condition
+        // 4. Regular Lambda (forEach { ... }) -> 1 Branch
+        
+        // Total expected: 2 Branches (2 lambdas), 1 Condition (Elvis)
+        classAnalysis.icpBreakdown[IcpType.CODE_BRANCH]?.size shouldBe 2
+        classAnalysis.icpBreakdown[IcpType.CONDITION]?.size shouldBe 1
     }
 })

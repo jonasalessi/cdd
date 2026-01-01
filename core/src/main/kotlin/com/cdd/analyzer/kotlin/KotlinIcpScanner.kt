@@ -119,7 +119,6 @@ class KotlinIcpScanner(
     override fun visitBinaryExpression(expression: KtBinaryExpression) {
         val operationToken = expression.operationToken
         if (operationToken == KtTokens.ELVIS) {
-            addInstance(IcpType.CODE_BRANCH, expression, "elvis operator")
             addInstance(IcpType.CONDITION, expression, "elvis condition")
         } else if (operationToken == KtTokens.ANDAND || operationToken == KtTokens.OROR) {
             addInstance(IcpType.CONDITION, expression, "logical operator ${expression.operationReference.text}")
@@ -127,10 +126,9 @@ class KotlinIcpScanner(
         super.visitBinaryExpression(expression)
     }
 
-    override fun visitSafeQualifiedExpression(expression: KtSafeQualifiedExpression) {
-        addInstance(IcpType.CODE_BRANCH, expression, "safe call")
-        addInstance(IcpType.CONDITION, expression, "safe call condition")
-        super.visitSafeQualifiedExpression(expression)
+    override fun visitLambdaExpression(lambdaExpression: KtLambdaExpression) {
+        addInstance(IcpType.CODE_BRANCH, lambdaExpression, "lambda expression")
+        super.visitLambdaExpression(lambdaExpression)
     }
 
     override fun visitCallExpression(expression: KtCallExpression) {

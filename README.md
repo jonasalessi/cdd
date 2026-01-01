@@ -105,8 +105,8 @@ metrics:
       exception_handling: 1.0 # try/catch and finally blocks
   kotlin:
     ".*": # Default weights for all Kotlin files
-       code_branch: 1.0       # if/when, loop constructs, safe calls (?.), elvis (?:)
-       condition: 1.0         # logical operators and branch expressions
+       code_branch: 1.0       # if/when, loop constructs, lambda expressions ({ ... })
+       condition: 1.0         # logical operators, branch expressions, elvis (?:)
        internal_coupling: 1.0 # references to other internal project classes/packages
        exception_handling: 1.0 # try/catch blocks
 
