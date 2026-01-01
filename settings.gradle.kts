@@ -1,1 +1,4 @@
-rootProject.name = "cdd-cli"
+rootProject.name = "cdd"
+
+include(":core")
+include(":cli")

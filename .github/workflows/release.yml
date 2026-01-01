@@ -22,13 +22,13 @@ jobs:
       uses: gradle/actions/setup-gradle@v5
 
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew :cli:shadowJar :cli:distZip
 
     - name: Upload Release Assets
       uses: softprops/action-gh-release@v2
       with:
         files: |
-          build/distributions/*.zip
-          build/libs/cdd-cli.jar
+          cli/build/distributions/*.zip
+          cli/build/libs/cdd-cli.jar
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -23,6 +23,13 @@ hb
 - **Actionable Recommendations**: Suggests refactoring targets based on complexity thresholds.
 - **Multiple Output Formats**: Supports Console, JSON, XML, and Markdown.
 
+## Project Structure
+
+This project is organized into two main Gradle modules:
+
+- **`core`**: Contains the core CDD/ICP analysis logic, domain models, and reporters. It is designed to be easily reusable for future integrations (e.g., IDE plugins, web dashboards) and remains independent of CLI-specific concerns.
+- **`cli`**: Contains the command-line interface logic using Clikt. It depends on the `core` module to perform the analysis.
+
 ## Quick Start
 
 ### Prerequisites
@@ -31,11 +38,24 @@ hb
 
 ### Installation
 
+#### Building From Source
+
+To build the project and generate the distributions:
+
+```bash
+./gradlew clean build
+```
+
+The artifacts will be generated in:
+- **Distribution Zip**: `cli/build/distributions/cdd-cli.zip`
+- **Fat JAR**: `cli/build/libs/cdd-cli.jar`
+
+#### Using Releases
+
 1. Download the latest release from the [Releases](https://github.com/jonas/icp-cli/releases) page.
-2. You can choose between two versions:
-    - **Distribution Zip (`cdd-cli.zip`)**: Unzip this file and add the `bin` folder to your system's `PATH`. This allows you
-      to run `cdd-cli` directly from your terminal.
-    - **Fat JAR (`cdd-cli.jar`)**: A single executable JAR file containing all dependencies.
+2. You can choose between:
+    - **Distribution Zip (`cdd-cli.zip`)**: Unzip this file and add the `bin` folder to your system's `PATH`.
+    - **Fat JAR (`cdd-cli.jar`)**: A single executable JAR file.
 
 ### Usage
 

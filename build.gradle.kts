@@ -1,90 +1,40 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version "1.9.24"
-    kotlin("plugin.serialization") version "1.9.24"
-    application
-    id("com.gradleup.shadow") version "9.3.0"
+    kotlin("jvm") version "1.9.24" apply false
+    kotlin("plugin.serialization") version "1.9.24" apply false
+    id("com.gradleup.shadow") version "9.3.0" apply false
 }
 
-group = "com.cdd"
-version = "0.1.0-SNAPSHOT"
+allprojects {
+    group = "com.cdd"
+    version = "0.1.0-SNAPSHOT"
 
-kotlin {
-    jvmToolchain(21)
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(21))
+    repositories {
+        mavenCentral()
     }
 }
 
+subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
 
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    // CLI Framework
-    implementation("com.github.ajalt.clikt:clikt:4.2.1")
-
-    // Java AST Analysis (Spoon)
-    implementation("fr.inria.gforge.spoon:spoon-core:11.2.1")
-
-    // Kotlin Compiler (for Kotlin analysis)
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.24")
-
-
-    // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    // implementation("org.jetbrains.kotlinx:kotlinx-serialization-xml:0.86.2") // Uncomment if needed
-
-    // YAML Config
-    implementation("com.charleskorn.kaml:kaml:0.57.0")
-
-    // Markdown Generation
-    implementation("org.commonmark:commonmark:0.21.0")
-
-    // Logging
-    implementation("org.slf4j:slf4j-simple:2.0.9")
-
-    // Testing
-    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
-    testImplementation("io.mockk:mockk:1.13.8")
-}
-
-application {
-    mainClass.set("com.cdd.cli.MainKt")
-}
-
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveFileName.set("cdd-cli.jar")
-}
-
-tasks.named<Zip>("distZip") {
-    archiveFileName.set("cdd-cli.zip")
-}
-
-tasks.named<Tar>("distTar") {
-    enabled = false
-}
-
-tasks.named<Zip>("shadowDistZip") {
-    enabled = false
-}
-
-tasks.named<Tar>("shadowDistTar") {
-    enabled = false
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
+    // Force evaluation of the Kotlin extension
+    configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
+        jvmToolchain(21)
     }
-}
 
+    apply(plugin = "java")
+    configure<JavaPluginExtension> {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(21))
+        }
+    }
 
-tasks.withType<Test> {
-    useJUnitPlatform()
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        kotlinOptions {
+            freeCompilerArgs = listOf("-Xjsr305=strict")
+        }
+    }
+
+    tasks.withType<Test> {
+        useJUnitPlatform()
+    }
 }
