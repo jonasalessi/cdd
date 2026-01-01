@@ -63,7 +63,6 @@ class KotlinIcpScanner(
 
         val elseExpr = expression.`else`
         if (elseExpr != null) {
-            // If the else branch is a block containing only an if, it's an else-if chain
             val isElseIf =
                 elseExpr is KtIfExpression || (elseExpr is KtBlockExpression && elseExpr.statements.size == 1 && elseExpr.statements[0] is KtIfExpression)
             if (!isElseIf) {
@@ -169,8 +168,6 @@ class KotlinIcpScanner(
     }
 
     private fun analyzeCondition(element: PsiElement) {
-        // Only add as a condition if it's not already handled (like logical operators)
-        // Actually, to match Java's high ICP counts, we'll keep adding it for now.
         addInstance(IcpType.CONDITION, element, "condition expression")
     }
 
@@ -202,24 +199,19 @@ class KotlinIcpScanner(
             if (name == simpleAnalyzedName) return false
         }
 
-        // Check if name is already fully qualified and internal
         val isExplicitlyInternal = config.internalCoupling.packages.any { pkg ->
             name.startsWith("$pkg.") || name == pkg
         }
         if (isExplicitlyInternal) return true
 
-        // If it's a simple name (no dots), it might be in the same package or wildcard imported
         if (!name.contains(".")) {
             // Heuristic: classes/types start with Uppercase in Kotlin
             if (name.isEmpty() || !name[0].isUpperCase()) return false
 
-            // 1. Check if defined in SAME file (most specific)
             if (isDefinedInFile(name)) {
-                // Return true only if it's NOT the class itself (already checked but just in case)
                 return true
             }
 
-            // 2. Check current package
             val currentPackage = currentKtFile.packageFqName.asString()
             if (currentPackage.isNotEmpty()) {
                 val isCurrentPackageInternal = config.internalCoupling.packages.any { pkg ->
@@ -240,7 +232,6 @@ class KotlinIcpScanner(
                 }
             }
 
-            // 3. Check internal wildcard imports
             val hasInternalWildcard = wildcardImports.any { wildcardPkg ->
                 config.internalCoupling.packages.any { pkg ->
                     wildcardPkg.startsWith("$pkg.") || wildcardPkg == pkg
@@ -260,7 +251,6 @@ class KotlinIcpScanner(
     }
 
     private fun isDefinedInFile(name: String): Boolean {
-        // Check top-level classes and objects in the same file
         return currentKtFile.declarations.any {
             it is KtClassOrObject && it.name == name
         }

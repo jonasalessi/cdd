@@ -21,7 +21,6 @@ class IcpAggregator {
         val totalIcp = allClassAnalyses.sumOf { it.totalIcp }
         val averageIcp = if (totalClasses > 0) totalIcp / totalClasses else 0.0
 
-        // Use pre-calculated isOverLimit
         val classesOverLimit = allClassAnalyses.filter { it.isOverLimit }
         val largestClasses = allClassAnalyses.sortedByDescending { it.totalIcp }.take(10)
 

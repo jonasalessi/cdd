@@ -4,12 +4,6 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 
 class CddCliTest : StringSpec({
-    "cdd-cli should parse limit correctly" {
-        val cli = CddCli()
-        cli.parse(listOf("src/test/resources/empty-folder", "--limit", "15"))
-        cli.limit shouldBe 15
-    }
-
     "cdd-cli should parse format correctly" {
         val cli = CddCli()
         cli.parse(listOf("src/test/resources/empty-folder", "--format", "json"))

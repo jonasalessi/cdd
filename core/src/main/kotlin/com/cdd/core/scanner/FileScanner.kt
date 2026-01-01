@@ -41,7 +41,6 @@ class FileScanner(
     }
 
     private fun isMatch(file: File, root: File): Boolean {
-        // Relative path for matching
         val relativePath = file.toRelativeString(root)
         val path = Paths.get(relativePath)
 
@@ -54,7 +53,6 @@ class FileScanner(
 
         if (!isIncluded) return false
 
-        // Check if excluded
         val isExcluded = excludeMatchers.any { it.matches(path) }
 
         return !isExcluded

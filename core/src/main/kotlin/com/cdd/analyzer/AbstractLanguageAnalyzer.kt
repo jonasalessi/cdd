@@ -19,7 +19,6 @@ abstract class AbstractLanguageAnalyzer : LanguageAnalyzer {
                     return weights
                 }
             } catch (e: Exception) {
-                // Ignore invalid regex
             }
         }
         return emptyMap()
@@ -36,7 +35,6 @@ abstract class AbstractLanguageAnalyzer : LanguageAnalyzer {
                     return limit
                 }
             } catch (e: Exception) {
-                // Ignore
             }
         }
         return null

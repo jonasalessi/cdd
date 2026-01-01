@@ -45,7 +45,6 @@ data class ReportingConfig(
  */
 @Serializable
 data class CddConfig(
-    // Language -> Regex -> Metric -> Weight
     val metrics: Map<String, Map<String, Map<String, Double>>> = emptyMap(),
     @SerialName("icp-limits")
     val icpLimits: Map<String, Map<String, Double>> = emptyMap(),

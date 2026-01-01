@@ -74,7 +74,6 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
 
     private fun analyzeClass(ktClass: KtClass, fullContent: String, file: File, config: CddConfig): ClassAnalysis {
         val ktFile = ktClass.containingFile as KtFile
-        // Resolve limits
         val weights = resolveWeights(file, config)
         val scanner = KotlinIcpScanner(fullContent, config, ktFile, weights, ktClass.fqName?.asString())
         ktClass.accept(scanner)

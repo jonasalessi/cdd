@@ -24,7 +24,6 @@ object CommentUtils {
             }
         }
 
-        // Handle start without end on the same line
         if (result.contains(startDelimiter)) {
             val start = result.indexOf(startDelimiter)
             result = result.substring(0, start)

@@ -19,9 +19,7 @@ object PackageDetector {
 
         files.forEach { file ->
             try {
-                // Read only the beginning of the file to find the package declaration
                 val content = file.inputStream().bufferedReader().use { reader ->
-                    // Read first 2KB of the file, which usually contains the package declaration
                     val buffer = CharArray(2048)
                     val read = reader.read(buffer)
                     if (read > 0) String(buffer, 0, read) else ""

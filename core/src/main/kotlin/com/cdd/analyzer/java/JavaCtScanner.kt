@@ -37,8 +37,6 @@ class JavaCtScanner(
 
         val elseBlock = ifElement.getElseStatement<CtStatement>()
         if (elseBlock != null) {
-            // If the else block is an 'if' or a block containing only an 'if', it's an 'else if' chain.
-            // We don't count it as a separate 'else branch' here because the next 'if' will count itself.
             val isElseIf =
                 elseBlock is CtIf || (elseBlock is CtBlock<*> && elseBlock.statements.size == 1 && elseBlock.statements[0] is CtIf)
             if (!isElseIf) {
@@ -117,7 +115,6 @@ class JavaCtScanner(
     private fun isCouplingType(reference: CtTypeReference<*>): Boolean {
         if (reference.isPrimitive) return false
         if (reference.simpleName == "void") return false
-        // Avoid duplicate counts in some cases like package references
         val parent = reference.parent
         return parent !is CtPackageReference
     }
@@ -126,7 +123,6 @@ class JavaCtScanner(
         val qn = reference.qualifiedName
         if (qn.startsWith("java.") || qn.startsWith("javax.") || qn.startsWith("sun.")) return true
 
-        // In no-classpath mode, if package is not resolved, check simple names for standard types
         val standardNames = setOf(
             "String",
             "List",
@@ -147,8 +143,7 @@ class JavaCtScanner(
 
     private fun analyzeCondition(condition: CtExpression<Boolean>?) {
         if (condition == null) return
-
-        // Initial condition
+        
         addInstance(IcpType.CONDITION, condition, "condition expression")
 
         // Count logical operators (&&, ||)
