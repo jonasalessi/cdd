@@ -9,6 +9,7 @@ out
 .gradle
 **/build/
 !**/src/**/build/
+.cdd.yaml
 code/bin
 cli/bin
 # Ignore Gradle GUI config
