@@ -1,6 +1,6 @@
 plugins {
-    kotlin("jvm") version "1.9.24" apply false
-    kotlin("plugin.serialization") version "1.9.24" apply false
+    kotlin("jvm") version "2.3.0" apply false
+    kotlin("plugin.serialization") version "2.3.0" apply false
     id("com.gradleup.shadow") version "9.3.0" apply false
 }
 
@@ -29,8 +29,8 @@ subprojects {
     }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions {
-            freeCompilerArgs = listOf("-Xjsr305=strict")
+        compilerOptions {
+            freeCompilerArgs.add("-Xjsr305=strict")
         }
     }
 

@@ -8,7 +8,7 @@ dependencies {
     implementation("fr.inria.gforge.spoon:spoon-core:11.2.1")
 
     // Kotlin Compiler (for Kotlin analysis)
-    implementation("org.jetbrains.kotlin:kotlin-compiler-embeddable:1.9.24")
+    implementation("org.jetbrains.kotlin:kotlin-compiler:2.3.0")
 
     // Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")

@@ -5,12 +5,12 @@ import com.cdd.analyzer.LanguageAnalyzer
 import com.cdd.core.config.CddConfig
 import com.cdd.core.util.CommentUtils
 import com.cdd.domain.*
-import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.cli.common.messages.MessageRenderer
 import org.jetbrains.kotlin.cli.common.messages.PrintingMessageCollector
 import org.jetbrains.kotlin.cli.jvm.compiler.EnvironmentConfigFiles
 import org.jetbrains.kotlin.cli.jvm.compiler.KotlinCoreEnvironment
-import org.jetbrains.kotlin.com.intellij.openapi.util.Disposer
+import com.intellij.openapi.util.Disposer
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
@@ -25,7 +25,7 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
             val disposable = Disposer.newDisposable()
             val configuration = CompilerConfiguration()
             configuration.put(
-                CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY,
+                CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY,
                 PrintingMessageCollector(System.err, MessageRenderer.PLAIN_RELATIVE_PATHS, false)
             )
 

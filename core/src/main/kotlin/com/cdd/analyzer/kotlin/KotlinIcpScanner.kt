@@ -3,7 +3,7 @@ package com.cdd.analyzer.kotlin
 import com.cdd.core.config.CddConfig
 import com.cdd.domain.IcpInstance
 import com.cdd.domain.IcpType
-import org.jetbrains.kotlin.com.intellij.psi.PsiElement
+
 import org.jetbrains.kotlin.lexer.KtTokens
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.psi.psiUtil.startOffset
@@ -34,7 +34,7 @@ class KotlinIcpScanner(
         }
     }
 
-    private fun addInstance(type: IcpType, element: PsiElement, description: String) {
+    private fun addInstance(type: IcpType, element: KtElement, description: String) {
         val line = getLineNumber(fullContent, element.startOffset)
         val column = getColumnNumber(fullContent, element.startOffset)
         val typeKey = type.name.lowercase()
@@ -167,7 +167,9 @@ class KotlinIcpScanner(
         }
     }
 
-    private fun analyzeCondition(element: PsiElement) {
+
+
+    private fun analyzeCondition(element: KtElement) {
         addInstance(IcpType.CONDITION, element, "condition expression")
     }
 
