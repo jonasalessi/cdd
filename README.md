@@ -23,10 +23,22 @@ CDD CLI is a tool designed to measure and manage code complexity based on the pr
 
 ## Project Structure
 
-This project is organized into two main Gradle modules:
+This project is organized into four Gradle modules:
 
-- **`core`**: Contains the core CDD/ICP analysis logic, domain models, and reporters. It is designed to be easily reusable for future integrations (e.g., IDE plugins, web dashboards) and remains independent of CLI-specific concerns.
-- **`cli`**: Contains the command-line interface logic using Clikt. It depends on the `core` module to perform the analysis.
+- **`core`**: Contains the reusable CDD engine, including domain models, analyzer contracts, configuration loading, file scanning, aggregation, reporting, and shared utilities. It does not contain parser-specific Java or Kotlin dependencies.
+- **`languages:java`**: Contains the Java-specific analyzer implementation and Spoon-based parsing logic.
+- **`languages:kotlin`**: Contains the Kotlin-specific analyzer implementation and Kotlin compiler/PSI-based parsing logic.
+- **`cli`**: Contains the command-line interface built with Clikt. It acts as the composition root by depending on `core`, `languages:java`, and `languages:kotlin`, then registering the concrete analyzers for execution.
+
+Current top-level layout:
+
+```text
+core/
+languages/
+  java/
+  kotlin/
+cli/
+```
 
 ## Quick Start
 
@@ -47,6 +59,21 @@ To build the project and generate the distributions:
 The artifacts will be generated in:
 - **Distribution Zip**: `cli/build/distributions/cdd-cli.zip`
 - **Fat JAR**: `cli/build/libs/cdd-cli.jar`
+
+### Test Coverage
+
+To generate an aggregate test coverage report for the full multi-module project:
+
+```bash
+./gradlew coverageReport
+```
+
+The reports will be generated in:
+- **Aggregate HTML Report**: `build/reports/jacoco/coverageReport/html/index.html`
+- **Aggregate XML Report**: `build/reports/jacoco/coverageReport/coverageReport.xml`
+
+Each module also exposes its own JaCoCo report at:
+- **Module HTML Report**: `<module>/build/reports/jacoco/test/html/index.html`
 
 #### Using Releases
 

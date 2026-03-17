@@ -15,18 +15,12 @@ allprojects {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
+    apply(plugin = "jacoco")
 
-    // Force evaluation of the Kotlin extension
     configure<org.jetbrains.kotlin.gradle.dsl.KotlinJvmProjectExtension> {
         jvmToolchain(21)
     }
 
-    apply(plugin = "java")
-    configure<JavaPluginExtension> {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(21))
-        }
-    }
 
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
         compilerOptions {
@@ -36,5 +30,24 @@ subprojects {
 
     tasks.withType<Test> {
         useJUnitPlatform()
+        finalizedBy(tasks.named("jacocoTestReport"))
     }
+
+    tasks.named<JacocoReport>("jacocoTestReport") {
+        dependsOn(tasks.named<Test>("test"))
+        reports {
+            html.required.set(false)
+            xml.required.set(true)
+        }
+    }
+}
+
+tasks.register<Sync>("coverageReport") {
+    group = "verification"
+    description = "Generates the aggregated JaCoCo coverage report for the full build."
+    dependsOn(":cli:testCodeCoverageReport")
+    from(project(":cli").layout.buildDirectory.dir("reports/jacoco/testCodeCoverageReport")) {
+        rename("testCodeCoverageReport.xml", "coverageReport.xml")
+    }
+    into(layout.buildDirectory.dir("reports/jacoco/coverageReport"))
 }

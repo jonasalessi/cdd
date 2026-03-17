@@ -2,6 +2,7 @@ plugins {
     kotlin("jvm")
     application
     id("com.gradleup.shadow")
+    id("jacoco-report-aggregation")
 }
 
 dependencies {
@@ -40,4 +41,15 @@ tasks.named<Zip>("shadowDistZip") {
 
 tasks.named<Tar>("shadowDistTar") {
     enabled = false
+}
+
+tasks.named<JacocoReport>("testCodeCoverageReport") {
+    reports {
+        html.required.set(false)
+        xml.required.set(true)
+    }
+}
+
+tasks.check {
+    dependsOn(tasks.named<JacocoReport>("testCodeCoverageReport"))
 }
