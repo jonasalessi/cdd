@@ -1,7 +1,6 @@
 package com.cdd.analyzer.kotlin
 
 import com.cdd.analyzer.AbstractLanguageAnalyzer
-import com.cdd.analyzer.LanguageAnalyzer
 import com.cdd.core.config.CddConfig
 import com.cdd.core.util.CommentUtils
 import com.cdd.domain.*
@@ -69,9 +68,6 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
             )
         }
     }
-
-
-
     private fun analyzeClass(ktClass: KtClass, fullContent: String, file: File, config: CddConfig): ClassAnalysis {
         val ktFile = ktClass.containingFile as KtFile
         val weights = resolveWeights(file, config)

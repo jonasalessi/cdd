@@ -6,9 +6,12 @@ plugins {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":languages:java"))
+    implementation(project(":languages:kotlin"))
 
     // CLI Framework
     implementation("com.github.ajalt.clikt:clikt:4.2.1")
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.9")
 
     // Testing
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")

@@ -1,7 +1,6 @@
 package com.cdd.analyzer.java
 
 import com.cdd.analyzer.AbstractLanguageAnalyzer
-import com.cdd.analyzer.LanguageAnalyzer
 import com.cdd.core.config.CddConfig
 import com.cdd.domain.*
 import org.slf4j.LoggerFactory
@@ -52,9 +51,6 @@ class JavaAnalyzer : AbstractLanguageAnalyzer() {
         launcher.addInputResource(file.absolutePath)
         return launcher
     }
-
-
-
     private fun analyzeClass(ctClass: CtClass<*>, config: CddConfig): ClassAnalysis {
         val file = ctClass.position?.file ?: File("unknown")
         val weights = resolveWeights(file, config)
