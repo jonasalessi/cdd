@@ -15,13 +15,22 @@ class IcpAggregatorTest : FunSpec({
         icpLimits = mapOf("java" to mapOf(".*" to 10.0))
     )
 
-    fun createClass(name: String, icp: Double, sloc: Int, isOverLimit: Boolean = icp > 10.0): ClassAnalysis {
+    fun makeIcpInstances(type: IcpType, count: Int): List<IcpInstance> =
+        (1..count).map { IcpInstance(type, it, 0, "desc", 1.0) }
+
+    fun createClass(
+        name: String,
+        icp: Double,
+        sloc: Int,
+        isOverLimit: Boolean = icp > 10.0,
+        icpBreakdown: Map<IcpType, List<IcpInstance>> = emptyMap()
+    ): ClassAnalysis {
         return ClassAnalysis(
             name = name,
             packageName = "com.example",
             lineRange = IntRangeSerializable(1, sloc),
             totalIcp = icp,
-            icpBreakdown = emptyMap(),
+            icpBreakdown = icpBreakdown,
             methods = emptyList(),
             isOverLimit = isOverLimit,
             sloc = SlocMetrics(sloc, sloc, sloc, 0, 0)
@@ -110,6 +119,7 @@ class IcpAggregatorTest : FunSpec({
         aggregated.averageIcp shouldBe 0.0
         aggregated.slocMetrics.totalSloc shouldBe 0
     }
+
     test("should generate appropriate suggestions") {
         val results = listOf(
             AnalysisResult(
@@ -123,6 +133,19 @@ class IcpAggregatorTest : FunSpec({
         aggregated.suggestions shouldHaveSize 2
         aggregated.suggestions[0] shouldBe "Refactor the 1 classes that exceed the defined metric limits."
         aggregated.suggestions[1] shouldBe "Prioritize 'HeavyClass' as it has the highest complexity (20.0 ICP)."
+    }
+
+    test("should suggest no refactoring when all classes are within limits") {
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("SmallClass", 5.0, 100, isOverLimit = false)
+                ), 5.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.any { it.contains("No classes exceed") } shouldBe true
     }
 
     test("should suggest smaller methods when correlation is high") {
@@ -169,5 +192,128 @@ class IcpAggregatorTest : FunSpec({
         // Should contain suggestion for method SLOC limit and ICP limit
         aggregated.suggestions.any { it.contains("MyClass.complexMethod") } shouldBe true
         aggregated.suggestions.any { it.contains("Consider extracting logic from 'MyClass.complexMethod'") } shouldBe true
+    }
+
+    test("should return zero correlation when all classes have identical ICP and SLOC") {
+        // When all values are equal, variance is 0, denominator is 0 → correlation must be 0.0
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 5.0, 50),
+                    createClass("C2", 5.0, 50)
+                ), 10.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.icpSlocCorrelation shouldBeExactly 0.0
+    }
+
+    test("should suggest centralized error handling when exception ICP exceeds 20 percent") {
+        // Total ICP = 10.0; 3 exception instances → exceptionIcp / totalIcp = 3/10 = 30% > 20%
+        val breakdown = mapOf(
+            IcpType.EXCEPTION_HANDLING to makeIcpInstances(IcpType.EXCEPTION_HANDLING, 3)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("A", 10.0, 100, isOverLimit = false, icpBreakdown = breakdown)
+                ), 10.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.any { it.contains("Exception handling accounts for") } shouldBe true
+    }
+
+    test("should suggest decoupling when coupling ICP exceeds 40 percent") {
+        // Total ICP = 10.0; 5 coupling instances → couplingIcp / totalIcp = 5/10 = 50% > 40%
+        val breakdown = mapOf(
+            IcpType.INTERNAL_COUPLING to makeIcpInstances(IcpType.INTERNAL_COUPLING, 5)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("B", 10.0, 100, isOverLimit = false, icpBreakdown = breakdown)
+                ), 10.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.any { it.contains("Coupling accounts for a large portion") } shouldBe true
+    }
+
+    test("should warn about brain methods when correlation is low and a class is over limit") {
+        // Low correlation: one small class has very high ICP (brain method), others are large+low ICP
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 20.0, 10, isOverLimit = true),
+                    createClass("C2", 1.0, 200, isOverLimit = false),
+                    createClass("C3", 1.0, 200, isOverLimit = false),
+                    createClass("C4", 1.0, 200, isOverLimit = false),
+                    createClass("C5", 1.0, 200, isOverLimit = false)
+                ), 24.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.any { it.contains("brain methods") } shouldBe true
+    }
+
+    test("should compute ICP distribution including null breakdown entries") {
+        // icpBreakdown only has CODE_BRANCH — missing IcpType keys hit the Elvis ?: 0 branch
+        val breakdown = mapOf(
+            IcpType.CODE_BRANCH to makeIcpInstances(IcpType.CODE_BRANCH, 2)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 5.0, 50, isOverLimit = false, icpBreakdown = breakdown)
+                ), 5.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.icpDistribution[IcpType.CODE_BRANCH] shouldBe 2
+        aggregated.icpDistribution[IcpType.EXCEPTION_HANDLING] shouldBe 0
+        aggregated.icpDistribution[IcpType.INTERNAL_COUPLING] shouldBe 0
+    }
+
+    test("should not suggest exception or coupling refactoring when ICP shares are below thresholds") {
+        // exception = 1/10 = 10% (<20%) and coupling = 3/10 = 30% (<40%) — neither threshold is exceeded
+        val breakdown = mapOf(
+            IcpType.EXCEPTION_HANDLING to makeIcpInstances(IcpType.EXCEPTION_HANDLING, 1),
+            IcpType.INTERNAL_COUPLING to makeIcpInstances(IcpType.INTERNAL_COUPLING, 3)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 10.0, 100, isOverLimit = false, icpBreakdown = breakdown)
+                ), 10.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.none { it.contains("Exception handling") } shouldBe true
+        aggregated.suggestions.none { it.contains("Coupling accounts") } shouldBe true
+    }
+
+    test("should not warn about brain methods when low correlation classes are all within limits") {
+        // correlation < 0.3, ≥5 classes, but none over limit → brain-method suggestion should NOT appear
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 9.0, 10, isOverLimit = false),
+                    createClass("C2", 1.0, 200, isOverLimit = false),
+                    createClass("C3", 1.0, 200, isOverLimit = false),
+                    createClass("C4", 1.0, 200, isOverLimit = false),
+                    createClass("C5", 1.0, 200, isOverLimit = false)
+                ), 13.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.none { it.contains("brain methods") } shouldBe true
     }
 })

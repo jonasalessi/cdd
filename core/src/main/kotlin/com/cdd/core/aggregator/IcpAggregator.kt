@@ -9,6 +9,17 @@ import kotlin.math.sqrt
  */
 class IcpAggregator {
 
+    companion object {
+        private const val MAX_LARGEST_CLASSES = 10
+        private const val EXCEPTION_ICP_THRESHOLD = 0.2
+        private const val COUPLING_ICP_THRESHOLD = 0.4
+        private const val HIGH_CORRELATION_THRESHOLD = 0.8
+        private const val LOW_CORRELATION_THRESHOLD = 0.3
+        private const val MIN_CLASSES_FOR_CORRELATION = 5
+        private const val SLOC_BUCKET_SIZE = 50
+        private const val MAX_METHOD_SUGGESTIONS = 3
+    }
+
     /**
      * Aggregates the given analysis results into a single project-wide report.
      */
@@ -16,38 +27,39 @@ class IcpAggregator {
         val allClassAnalyses = results.flatMap { it.classes }
         val allMethodAnalyses = allClassAnalyses.flatMap { it.methods }
 
-        val totalFiles = results.size
         val totalClasses = allClassAnalyses.size
         val totalIcp = allClassAnalyses.sumOf { it.totalIcp }
         val averageIcp = if (totalClasses > 0) totalIcp / totalClasses else 0.0
 
         val classesOverLimit = allClassAnalyses.filter { it.isOverLimit }
-        val largestClasses = allClassAnalyses.sortedByDescending { it.totalIcp }.take(10)
+        val largestClasses = allClassAnalyses.sortedByDescending { it.totalIcp }.take(MAX_LARGEST_CLASSES)
+        val icpDistribution = buildIcpDistribution(allClassAnalyses)
 
-        val icpDistribution = IcpType.entries.associateWith { type ->
-            allClassAnalyses.sumOf { it.icpBreakdown[type]?.size ?: 0 }
-        }
-
-        val slocStatistics = computeSlocStatistics(allClassAnalyses, allMethodAnalyses)
+        val slocMetrics = computeSlocStatistics(allClassAnalyses, allMethodAnalyses)
         val correlation = computeIcpSlocCorrelation(allClassAnalyses)
         val methodsOverSlocLimit = allMethodAnalyses.filter { it.isOverSlocLimit }
 
         val suggestions = generateSuggestions(allClassAnalyses, allMethodAnalyses, icpDistribution, correlation, config)
 
         return AggregatedAnalysis(
-            totalFiles = totalFiles,
+            totalFiles = results.size,
             totalClasses = totalClasses,
             totalIcp = totalIcp,
             averageIcp = averageIcp,
             classesOverLimit = classesOverLimit,
-            icpDistribution = icpDistribution.mapKeys { it.key },
+            icpDistribution = icpDistribution,
             largestClasses = largestClasses,
-            slocMetrics = slocStatistics,
+            slocMetrics = slocMetrics,
             icpSlocCorrelation = correlation,
             methodsOverSlocLimit = methodsOverSlocLimit,
             suggestions = suggestions
         )
     }
+
+    private fun buildIcpDistribution(classes: List<ClassAnalysis>): Map<IcpType, Int> =
+        IcpType.entries.associateWith { type ->
+            classes.sumOf { it.icpBreakdown[type]?.size ?: 0 }
+        }
 
     private fun generateSuggestions(
         classes: List<ClassAnalysis>,
@@ -56,61 +68,98 @@ class IcpAggregator {
         correlation: Double,
         config: CddConfig
     ): List<String> {
+        if (classes.isEmpty()) return emptyList()
+
         val suggestions = mutableListOf<String>()
         val totalIcp = classes.sumOf { it.totalIcp }
 
-        if (classes.isEmpty()) return emptyList()
-
-        // 1. Overall Status
-        val classesOverLimit = classes.filter { it.isOverLimit }
-        if (classesOverLimit.isNotEmpty()) {
-            suggestions.add("Refactor the ${classesOverLimit.size} classes that exceed the defined metric limits.")
-            val worstClass = classesOverLimit.maxByOrNull { it.totalIcp }
-            if (worstClass != null) {
-                suggestions.add(
-                    "Prioritize '${worstClass.name}' as it has the highest complexity (${
-                        String.format(
-                            "%.1f",
-                            worstClass.totalIcp
-                        )
-                    } ICP)."
-                )
-            }
-        } else {
-            suggestions.add("No classes exceed the complexity limits. Good job!")
-        }
-
-        // 2. ICP Type Analysis
-        if (totalIcp > 0) {
-            val exceptionIcp = distribution[IcpType.EXCEPTION_HANDLING] ?: 0
-            if (exceptionIcp.toDouble() / totalIcp > 0.2) {
-                suggestions.add("Exception handling accounts for >20% of total complexity. Consider a more centralized error handling strategy or using functional error handling.")
-            }
-
-            val couplingIcp = (distribution[IcpType.INTERNAL_COUPLING] ?: 0).toDouble()
-            if (couplingIcp / totalIcp > 0.4) {
-                suggestions.add("Coupling accounts for a large portion of complexity. Consider extracting high-coupling logic into specialized services or using interfaces to decouple components.")
-            }
-        }
-
-        // 3. Correlation Analysis
-        if (correlation > 0.8 && classes.size >= 5) {
-            suggestions.add("Strong correlation ($correlation) between SLOC and ICP detected. Making methods smaller (extracting methods) will likely reduce cognitive complexity directly.")
-        } else if (correlation < 0.3 && classes.size >= 5 && classes.any { it.isOverLimit }) {
-            suggestions.add("Low correlation ($correlation) between SLOC and ICP. Some classes are complex despite being small. Watch out for 'brain methods' with high density of logic.")
-        }
-
-        // 4. Method limits
-        val overSloc = methods.filter { it.isOverSlocLimit }
-        if (overSloc.isNotEmpty()) {
-            suggestions.add("${overSloc.size} methods exceed the ${config.sloc.methodLimit} SLOC threshold. Breaking these down is highly recommended.")
-            overSloc.take(3).forEach { method ->
-                suggestions.add("  - Consider extracting logic from '${method.className}.${method.name}' (${method.sloc.total} SLOC).")
-            }
-        }
+        addOverLimitSuggestions(classes, suggestions)
+        addIcpTypeSuggestions(totalIcp, distribution, suggestions)
+        addCorrelationSuggestions(correlation, classes, suggestions)
+        addMethodSuggestions(methods, config, suggestions)
 
         return suggestions
     }
+
+    private fun addOverLimitSuggestions(classes: List<ClassAnalysis>, suggestions: MutableList<String>) {
+        val classesOverLimit = classes.filter { it.isOverLimit }
+        if (classesOverLimit.isEmpty()) {
+            suggestions.add("No classes exceed the complexity limits. Good job!")
+            return
+        }
+        suggestions.add("Refactor the ${classesOverLimit.size} classes that exceed the defined metric limits.")
+        val worstClass = classesOverLimit.maxByOrNull { it.totalIcp }
+        if (worstClass != null) {
+            suggestions.add(
+                "Prioritize '${worstClass.name}' as it has the highest complexity (${
+                    String.format("%.1f", worstClass.totalIcp)
+                } ICP)."
+            )
+        }
+    }
+
+    private fun addIcpTypeSuggestions(
+        totalIcp: Double,
+        distribution: Map<IcpType, Int>,
+        suggestions: MutableList<String>
+    ) {
+        if (totalIcp <= 0) return
+
+        val exceptionShare = (distribution[IcpType.EXCEPTION_HANDLING] ?: 0).toDouble() / totalIcp
+        if (exceptionShare > EXCEPTION_ICP_THRESHOLD) {
+            suggestions.add(
+                "Exception handling accounts for >20% of total complexity. " +
+                "Consider a more centralized error handling strategy or using functional error handling."
+            )
+        }
+
+        val couplingShare = (distribution[IcpType.INTERNAL_COUPLING] ?: 0).toDouble() / totalIcp
+        if (couplingShare > COUPLING_ICP_THRESHOLD) {
+            suggestions.add(
+                "Coupling accounts for a large portion of complexity. " +
+                "Consider extracting high-coupling logic into specialized services or using interfaces to decouple components."
+            )
+        }
+    }
+
+    private fun addCorrelationSuggestions(
+        correlation: Double,
+        classes: List<ClassAnalysis>,
+        suggestions: MutableList<String>
+    ) {
+        if (classes.size < MIN_CLASSES_FOR_CORRELATION) return
+
+        if (correlation > HIGH_CORRELATION_THRESHOLD) {
+            suggestions.add(
+                "Strong correlation ($correlation) between SLOC and ICP detected. " +
+                "Making methods smaller (extracting methods) will likely reduce cognitive complexity directly."
+            )
+            return
+        }
+
+        val hasLowCorrelationWithOverLimit = correlation < LOW_CORRELATION_THRESHOLD && classes.any { it.isOverLimit }
+        if (hasLowCorrelationWithOverLimit) {
+            suggestions.add(
+                "Low correlation ($correlation) between SLOC and ICP. " +
+                "Some classes are complex despite being small. Watch out for 'brain methods' with high density of logic."
+            )
+        }
+    }
+
+    private fun addMethodSuggestions(
+        methods: List<MethodAnalysis>,
+        config: CddConfig,
+        suggestions: MutableList<String>
+    ) {
+        val overSloc = methods.filter { it.isOverSlocLimit }
+        if (overSloc.isEmpty()) return
+
+        suggestions.add("${overSloc.size} methods exceed the ${config.sloc.methodLimit} SLOC threshold. Breaking these down is highly recommended.")
+        overSloc.take(MAX_METHOD_SUGGESTIONS).forEach { method ->
+            suggestions.add("  - Consider extracting logic from '${method.className}.${method.name}' (${method.sloc.total} SLOC).")
+        }
+    }
+
     private fun computeSlocStatistics(
         classes: List<ClassAnalysis>,
         methods: List<MethodAnalysis>
@@ -121,21 +170,9 @@ class IcpAggregator {
 
         val totalSloc = classes.sumOf { it.sloc.total }
         val avgSlocPerClass = totalSloc.toDouble() / classes.size
-        val avgSlocPerMethod =
-            if (methods.isNotEmpty()) methods.sumOf { it.sloc.codeOnly }.toDouble() / methods.size else 0.0
-
-        val methodSlocs = methods.map { it.sloc.total }.sorted()
-        val medianSlocPerMethod = if (methodSlocs.isNotEmpty()) {
-            methodSlocs[methodSlocs.size / 2]
-        } else 0
-
-        val slocVariance = classes.sumOf {
-            val diff = it.sloc.total - avgSlocPerClass
-            diff * diff
-        } / classes.size
-        val slocStdDev = sqrt(slocVariance)
-
-        val distribution = calculateSlocDistribution(classes)
+        val avgSlocPerMethod = computeAverageSlocPerMethod(methods)
+        val medianSlocPerMethod = computeMedian(methods.map { it.sloc.total })
+        val slocStdDev = computeStdDev(classes.map { it.sloc.total.toDouble() }, avgSlocPerClass)
 
         return SlocStatistics(
             totalSloc = totalSloc,
@@ -143,16 +180,30 @@ class IcpAggregator {
             averageSlocPerMethod = avgSlocPerMethod,
             medianSlocPerMethod = medianSlocPerMethod,
             slocStdDev = slocStdDev,
-            slocDistribution = distribution
+            slocDistribution = calculateSlocDistribution(classes)
         )
     }
 
-    private fun calculateSlocDistribution(classes: List<ClassAnalysis>): Map<Int, Int> {
-        val bucketSize = 50
-        return classes.groupBy { (it.sloc.total / bucketSize) * bucketSize }
+    private fun computeAverageSlocPerMethod(methods: List<MethodAnalysis>): Double =
+        if (methods.isNotEmpty()) methods.sumOf { it.sloc.codeOnly }.toDouble() / methods.size else 0.0
+
+    private fun computeMedian(values: List<Int>): Int {
+        val sorted = values.sorted()
+        return if (sorted.isNotEmpty()) sorted[sorted.size / 2] else 0
+    }
+
+    private fun computeStdDev(values: List<Double>, mean: Double): Double {
+        val variance = values.sumOf { value ->
+            val diff = value - mean
+            diff * diff
+        } / values.size
+        return sqrt(variance)
+    }
+
+    private fun calculateSlocDistribution(classes: List<ClassAnalysis>): Map<Int, Int> =
+        classes.groupBy { (it.sloc.total / SLOC_BUCKET_SIZE) * SLOC_BUCKET_SIZE }
             .mapValues { it.value.size }
             .toSortedMap()
-    }
 
     private fun computeIcpSlocCorrelation(classes: List<ClassAnalysis>): Double {
         if (classes.size < 2) return 0.0
