@@ -1,3 +1,6 @@
+# CDD CLI: Cognitive-Driven Development Analyzer
+CDD CLI is a tool designed to measure and manage code complexity based on the principles of Cognitive-Driven Development (CDD). It helps developers identify areas of the code that are difficult to understand and maintain by calculating the Intrinsic Cognitive Point (ICP).
+
 # Coding Standards
 	•	Use camelCase for declaring methods, functions, and variables, PascalCase for classes and interfaces, and kebab-case for files and directories.
 	•	Avoid abbreviations, but also do not use very long names (more than 25 characters).
