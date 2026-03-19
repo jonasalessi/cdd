@@ -9,17 +9,6 @@ import kotlin.math.sqrt
  */
 class IcpAggregator {
 
-    companion object {
-        private const val MAX_LARGEST_CLASSES = 10
-        private const val EXCEPTION_ICP_THRESHOLD = 0.2
-        private const val COUPLING_ICP_THRESHOLD = 0.4
-        private const val HIGH_CORRELATION_THRESHOLD = 0.8
-        private const val LOW_CORRELATION_THRESHOLD = 0.3
-        private const val MIN_CLASSES_FOR_CORRELATION = 5
-        private const val SLOC_BUCKET_SIZE = 50
-        private const val MAX_METHOD_SUGGESTIONS = 3
-    }
-
     /**
      * Aggregates the given analysis results into a single project-wide report.
      */
@@ -70,27 +59,32 @@ class IcpAggregator {
     ): List<String> {
         if (classes.isEmpty()) return emptyList()
 
-        val suggestions = mutableListOf<String>()
-        val totalIcp = classes.sumOf { it.totalIcp }
+        val suggestionContext = SuggestionContext(
+            classes = classes,
+            methods = methods,
+            distribution = distribution,
+            correlation = correlation,
+            config = config
+        )
 
-        addOverLimitSuggestions(classes, suggestions)
-        addIcpTypeSuggestions(totalIcp, distribution, suggestions)
-        addCorrelationSuggestions(correlation, classes, suggestions)
-        addMethodSuggestions(methods, config, suggestions)
+        addOverLimitSuggestions(suggestionContext)
+        addIcpTypeSuggestions(suggestionContext)
+        addCorrelationSuggestions(suggestionContext)
+        addMethodSuggestions(suggestionContext)
 
-        return suggestions
+        return suggestionContext.suggestions
     }
 
-    private fun addOverLimitSuggestions(classes: List<ClassAnalysis>, suggestions: MutableList<String>) {
-        val classesOverLimit = classes.filter { it.isOverLimit }
+    private fun addOverLimitSuggestions(context: SuggestionContext) {
+        val classesOverLimit = context.classes.filter { it.isOverLimit }
         if (classesOverLimit.isEmpty()) {
-            suggestions.add("No classes exceed the complexity limits. Good job!")
+            context.suggestions.add("No classes exceed the complexity limits. Good job!")
             return
         }
-        suggestions.add("Refactor the ${classesOverLimit.size} classes that exceed the defined metric limits.")
+        context.suggestions.add("Refactor the ${classesOverLimit.size} classes that exceed the defined metric limits.")
         val worstClass = classesOverLimit.maxByOrNull { it.totalIcp }
         if (worstClass != null) {
-            suggestions.add(
+            context.suggestions.add(
                 "Prioritize '${worstClass.name}' as it has the highest complexity (${
                     String.format("%.1f", worstClass.totalIcp)
                 } ICP)."
@@ -98,65 +92,59 @@ class IcpAggregator {
         }
     }
 
-    private fun addIcpTypeSuggestions(
-        totalIcp: Double,
-        distribution: Map<IcpType, Int>,
-        suggestions: MutableList<String>
-    ) {
+    private fun addIcpTypeSuggestions(context: SuggestionContext) {
+        val totalIcp = context.classes.sumOf { it.totalIcp }
         if (totalIcp <= 0) return
 
-        val exceptionShare = (distribution[IcpType.EXCEPTION_HANDLING] ?: 0).toDouble() / totalIcp
+        val exceptionShare = (context.distribution[IcpType.EXCEPTION_HANDLING] ?: 0).toDouble() / totalIcp
         if (exceptionShare > EXCEPTION_ICP_THRESHOLD) {
-            suggestions.add(
+            context.suggestions.add(
                 "Exception handling accounts for >20% of total complexity. " +
                 "Consider a more centralized error handling strategy or using functional error handling."
             )
         }
 
-        val couplingShare = (distribution[IcpType.INTERNAL_COUPLING] ?: 0).toDouble() / totalIcp
+        val couplingShare = (context.distribution[IcpType.INTERNAL_COUPLING] ?: 0).toDouble() / totalIcp
         if (couplingShare > COUPLING_ICP_THRESHOLD) {
-            suggestions.add(
+            context.suggestions.add(
                 "Coupling accounts for a large portion of complexity. " +
                 "Consider extracting high-coupling logic into specialized services or using interfaces to decouple components."
             )
         }
     }
 
-    private fun addCorrelationSuggestions(
-        correlation: Double,
-        classes: List<ClassAnalysis>,
-        suggestions: MutableList<String>
-    ) {
-        if (classes.size < MIN_CLASSES_FOR_CORRELATION) return
+    private fun addCorrelationSuggestions(context: SuggestionContext) {
+        if (context.classes.size < MIN_CLASSES_FOR_CORRELATION) return
 
-        if (correlation > HIGH_CORRELATION_THRESHOLD) {
-            suggestions.add(
-                "Strong correlation ($correlation) between SLOC and ICP detected. " +
+        if (context.correlation > HIGH_CORRELATION_THRESHOLD) {
+            context.suggestions.add(
+                "Strong correlation (${context.correlation}) between SLOC and ICP detected. " +
                 "Making methods smaller (extracting methods) will likely reduce cognitive complexity directly."
             )
             return
         }
 
-        val hasLowCorrelationWithOverLimit = correlation < LOW_CORRELATION_THRESHOLD && classes.any { it.isOverLimit }
+        val hasLowCorrelationWithOverLimit =
+            context.correlation < LOW_CORRELATION_THRESHOLD && context.classes.any { it.isOverLimit }
         if (hasLowCorrelationWithOverLimit) {
-            suggestions.add(
-                "Low correlation ($correlation) between SLOC and ICP. " +
+            context.suggestions.add(
+                "Low correlation (${context.correlation}) between SLOC and ICP. " +
                 "Some classes are complex despite being small. Watch out for 'brain methods' with high density of logic."
             )
         }
     }
 
-    private fun addMethodSuggestions(
-        methods: List<MethodAnalysis>,
-        config: CddConfig,
-        suggestions: MutableList<String>
-    ) {
-        val overSloc = methods.filter { it.isOverSlocLimit }
+    private fun addMethodSuggestions(context: SuggestionContext) {
+        val overSloc = context.methods.filter { it.isOverSlocLimit }
         if (overSloc.isEmpty()) return
 
-        suggestions.add("${overSloc.size} methods exceed the ${config.sloc.methodLimit} SLOC threshold. Breaking these down is highly recommended.")
+        context.suggestions.add(
+            "${overSloc.size} methods exceed the ${context.config.sloc.methodLimit} SLOC threshold. Breaking these down is highly recommended."
+        )
         overSloc.take(MAX_METHOD_SUGGESTIONS).forEach { method ->
-            suggestions.add("  - Consider extracting logic from '${method.className}.${method.name}' (${method.sloc.total} SLOC).")
+            context.suggestions.add(
+                "  - Consider extracting logic from '${method.className}.${method.name}' (${method.sloc.total} SLOC)."
+            )
         }
     }
 
@@ -225,5 +213,25 @@ class IcpAggregator {
 
         val denominator = sqrt(icpSquareSum * slocSquareSum)
         return if (denominator != 0.0) numerator / denominator else 0.0
+    }
+
+    private data class SuggestionContext(
+        val classes: List<ClassAnalysis>,
+        val methods: List<MethodAnalysis>,
+        val distribution: Map<IcpType, Int>,
+        val correlation: Double,
+        val config: CddConfig,
+        val suggestions: MutableList<String> = mutableListOf()
+    )
+
+    companion object {
+        private const val MAX_LARGEST_CLASSES = 10
+        private const val EXCEPTION_ICP_THRESHOLD = 0.2
+        private const val COUPLING_ICP_THRESHOLD = 0.4
+        private const val HIGH_CORRELATION_THRESHOLD = 0.8
+        private const val LOW_CORRELATION_THRESHOLD = 0.3
+        private const val MIN_CLASSES_FOR_CORRELATION = 5
+        private const val SLOC_BUCKET_SIZE = 50
+        private const val MAX_METHOD_SUGGESTIONS = 3
     }
 }

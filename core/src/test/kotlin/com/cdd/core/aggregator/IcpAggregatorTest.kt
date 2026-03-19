@@ -316,4 +316,40 @@ class IcpAggregatorTest : FunSpec({
         val aggregated = aggregator.aggregate(results, config)
         aggregated.suggestions.none { it.contains("brain methods") } shouldBe true
     }
+
+    test("should not suggest icp type refactoring when total icp is zero") {
+        val breakdown = mapOf(
+            IcpType.EXCEPTION_HANDLING to makeIcpInstances(IcpType.EXCEPTION_HANDLING, 2),
+            IcpType.INTERNAL_COUPLING to makeIcpInstances(IcpType.INTERNAL_COUPLING, 5)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 0.0, 100, isOverLimit = false, icpBreakdown = breakdown)
+                ), 0.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.none { it.contains("Exception handling") } shouldBe true
+        aggregated.suggestions.none { it.contains("Coupling accounts") } shouldBe true
+    }
+
+    test("should not suggest icp type refactoring at exact configured thresholds") {
+        val breakdown = mapOf(
+            IcpType.EXCEPTION_HANDLING to makeIcpInstances(IcpType.EXCEPTION_HANDLING, 2),
+            IcpType.INTERNAL_COUPLING to makeIcpInstances(IcpType.INTERNAL_COUPLING, 4)
+        )
+        val results = listOf(
+            AnalysisResult(
+                "F1.java", listOf(
+                    createClass("C1", 10.0, 100, isOverLimit = false, icpBreakdown = breakdown)
+                ), 10.0
+            )
+        )
+
+        val aggregated = aggregator.aggregate(results, config)
+        aggregated.suggestions.none { it.contains("Exception handling") } shouldBe true
+        aggregated.suggestions.none { it.contains("Coupling accounts") } shouldBe true
+    }
 })
