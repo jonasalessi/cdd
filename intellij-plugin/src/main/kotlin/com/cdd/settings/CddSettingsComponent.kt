@@ -96,4 +96,30 @@ class CddSettingsComponent {
     
     fun getMethodLimit(): Int = methodLimitSpinner.number
     fun setMethodLimit(limit: Int) { methodLimitSpinner.number = limit }
+
+    fun getSettingsModel(): CddSettingsModel {
+        return CddSettingsModel(
+            javaIcpLimits = getJavaRules().toMutableMap(),
+            kotlinIcpLimits = getKotlinRules().toMutableMap(),
+            javaMetrics = getJavaWeights().mapValues { it.value.toMutableMap() }.toMutableMap(),
+            kotlinMetrics = getKotlinWeights().mapValues { it.value.toMutableMap() }.toMutableMap(),
+            autoDetect = isAutoDetect(),
+            packages = getPackages().toMutableList(),
+            include = getIncludePatterns().toMutableList(),
+            exclude = getExcludePatterns().toMutableList(),
+            methodLimit = getMethodLimit()
+        )
+    }
+
+    fun setSettingsModel(model: CddSettingsModel) {
+        setJavaRules(model.javaIcpLimits)
+        setKotlinRules(model.kotlinIcpLimits)
+        setJavaWeights(model.javaMetrics)
+        setKotlinWeights(model.kotlinMetrics)
+        setAutoDetect(model.autoDetect)
+        setPackages(model.packages)
+        setIncludePatterns(model.include)
+        setExcludePatterns(model.exclude)
+        setMethodLimit(model.methodLimit)
+    }
 }
