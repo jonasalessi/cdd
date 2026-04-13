@@ -1,8 +1,6 @@
 package com.cdd.settings
 
-import com.cdd.model.CddConfig
-import com.cdd.model.InternalCouplingConfig
-import com.cdd.model.SlocConfig
+import com.cdd.core.config.CddConfig
 import com.intellij.openapi.project.Project
 import org.yaml.snakeyaml.DumperOptions
 import org.yaml.snakeyaml.Yaml
@@ -27,7 +25,7 @@ class CddConfigService(private val project: Project) {
             } ?: return CddConfig()
 
             val config = CddConfig()
-            
+
             parseIcpLimits(data, config)
             parseMetrics(data, config)
             parseInternalCoupling(data, config)
@@ -71,8 +69,8 @@ class CddConfigService(private val project: Project) {
     }
 
     private fun parseIcpLimits(data: Map<String, Any>, config: CddConfig) {
-        val limits = (data["icp-limits"] as? Map<String, Map<String, Int>>)?.mapValues { 
-            it.value.toMutableMap() 
+        val limits = (data["icp-limits"] as? Map<String, Map<String, Int>>)?.mapValues {
+            it.value.toMutableMap()
         } ?: return
 
         limits.forEach { (language, patterns) ->
@@ -82,7 +80,7 @@ class CddConfigService(private val project: Project) {
 
     private fun parseMetrics(data: Map<String, Any>, config: CddConfig) {
         val metrics = (data["metrics"] as? Map<String, Map<String, Map<String, Any>>>)?.mapValues {
-            it.value.mapValues { inner -> 
+            it.value.mapValues { inner ->
                 inner.value.mapValues { weightEntry ->
                     (weightEntry.value as? Number)?.toDouble() ?: 1.0
                 }.toMutableMap()
@@ -96,7 +94,7 @@ class CddConfigService(private val project: Project) {
 
     private fun parseInternalCoupling(data: Map<String, Any>, config: CddConfig) {
         val map = data["internal_coupling"] as? Map<String, Any> ?: return
-        
+
         (map["auto_detect"] as? Boolean)?.let { config.internalCoupling.autoDetect = it }
         (map["packages"] as? List<String>)?.let { config.internalCoupling.packages = it.toMutableList() }
     }

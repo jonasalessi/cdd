@@ -20,8 +20,9 @@ class IcpAutoCalculateOnSaveListener : FileDocumentManagerListener {
         }
         val project = ProjectLocator.getInstance().guessProjectForFile(file)
         if (project != null) {
-            val r = KotlinAnalyzer().analyze(file.toNioPath().toFile(), CddConfigService.getInstance(project).loadConfig())
-            println(r)
+            val ktFile = file.toNioPath().toFile()
+            val config = CddConfigService.getInstance(project).loadConfig()
+            //TODO here to call the analizer and show inlay the results for each line number
         }
 
     }
