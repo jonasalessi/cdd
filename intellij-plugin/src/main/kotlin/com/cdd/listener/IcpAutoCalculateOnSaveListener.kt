@@ -1,6 +1,7 @@
 package com.cdd.listener
 
 import com.cdd.CddConstants
+import com.cdd.analyzer.kotlin.IntellijKotlinAnalyzer
 import com.cdd.settings.CDDSettingsService
 import com.cdd.settings.CddConfigService
 import com.intellij.openapi.editor.Document
@@ -22,7 +23,8 @@ class IcpAutoCalculateOnSaveListener : FileDocumentManagerListener {
         if (project != null) {
             val ktFile = file.toNioPath().toFile()
             val config = CddConfigService.getInstance(project).loadConfig()
-            //TODO here to call the analizer and show inlay the results for each line number
+            val result = IntellijKotlinAnalyzer(project).analyze(ktFile, config)
+            //TODO using the result it should show the inlay hints for the file display the points
         }
 
     }
