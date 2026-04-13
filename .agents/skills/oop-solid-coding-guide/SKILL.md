@@ -1,9 +1,7 @@
-```yaml
 ---
 name: oop-solid-coding-guide
 description: Guides the creation of robust Object-Oriented Programming (OOP) code applying SOLID principles, encapsulation, and object consistency. Use when the user asks to write OOP code, refactor existing classes, apply SOLID principles, or improve system design.
 ---
-```
 
 # Object-Oriented Programming and SOLID Guidelines
 
