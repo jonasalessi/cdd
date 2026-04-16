@@ -1,35 +1,48 @@
 package com.cdd.listener
 
-import com.cdd.CddConstants
-import com.cdd.analyzer.kotlin.IntellijKotlinAnalyzer
+import com.cdd.analysis.KotlinFileAnalysisRunner
 import com.cdd.settings.CDDSettingsService
-import com.cdd.settings.CddConfigService
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
 import com.intellij.openapi.project.ProjectLocator
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 
-class IcpAutoCalculateOnSaveListener : FileDocumentManagerListener {
-    override fun beforeAnyDocumentSaving(document: Document, explicit: Boolean) {
+class IcpAutoCalculateOnSaveListener(
+) : FileDocumentManagerListener {
+    private var analysisRunner = KotlinFileAnalysisRunner()
+    private var resolveFile: (Document) -> VirtualFile? =
+        { document -> FileDocumentManager.getInstance().getFile(document) }
+    private var resolveProject: (VirtualFile) -> Project? =
+        { file -> ProjectLocator.getInstance().guessProjectForFile(file) }
+    private var scheduleAnalysis: ((() -> Unit) -> Unit) =
+        { action -> ApplicationManager.getApplication().invokeLater(action) }
+
+    internal constructor(
+        analysisRunner: KotlinFileAnalysisRunner,
+        resolveFile: (Document) -> VirtualFile? =
+            { document -> FileDocumentManager.getInstance().getFile(document) },
+        resolveProject: (VirtualFile) -> Project? =
+            { file -> ProjectLocator.getInstance().guessProjectForFile(file) },
+        scheduleAnalysis: ((() -> Unit) -> Unit) =
+            { action -> ApplicationManager.getApplication().invokeLater(action) }
+    ) : this() {
+        this.analysisRunner = analysisRunner
+        this.resolveFile = resolveFile
+        this.resolveProject = resolveProject
+        this.scheduleAnalysis = scheduleAnalysis
+    }
+
+    override fun beforeDocumentSaving(document: Document) {
         if (!CDDSettingsService.getInstance().isAutoCalculateOnSave()) {
             return
         }
-        val file = FileDocumentManager.getInstance().getFile(document) ?: return
-        val extension = file.extension?.lowercase() ?: ""
-        if (extension != CddConstants.FILE_EXTENSION_KOTLIN && extension != CddConstants.FILE_EXTENSION_JAVA) {
-            return
+        val file = resolveFile(document) ?: return
+        val project = resolveProject(file) ?: return
+        scheduleAnalysis {
+            analysisRunner.analyze(project, file)
         }
-        val project = ProjectLocator.getInstance().guessProjectForFile(file)
-        if (project != null) {
-            val ktFile = file.toNioPath().toFile()
-            val config = CddConfigService.getInstance(project).loadConfig()
-            val result = IntellijKotlinAnalyzer(project).analyze(ktFile, config)
-            //TODO using the result it should show the inlay hints for the file display the points
-        }
-
-    }
-
-    companion object {
-        const val NOTIFICATION_GROUP_ID = "cddAutoCalculateOnSave"
     }
 }

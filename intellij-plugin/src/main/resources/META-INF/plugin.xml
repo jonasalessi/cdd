@@ -29,4 +29,14 @@
                              id="com.cdd.settings.CddSettingsConfigurable" displayName="CDD"/>
     </extensions>
 
+    <actions>
+        <action id="com.cdd.action.AnalyzeKotlinFileAction"
+                class="com.cdd.action.AnalyzeKotlinFileAction"
+                text="CDD Analysis"
+                description="Analyze the current Kotlin file with CDD">
+            <add-to-group group-id="AnalyzeMenu" anchor="last"/>
+            <add-to-group group-id="EditorPopupMenu" anchor="last"/>
+        </action>
+    </actions>
+
 </idea-plugin>
