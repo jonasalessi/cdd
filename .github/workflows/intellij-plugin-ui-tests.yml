@@ -8,6 +8,7 @@
 # Workflow is triggered manually.
 
 name: Run UI Tests
+
 on:
   workflow_dispatch
 
@@ -51,6 +52,7 @@ jobs:
       # Run IDEA prepared for UI testing
       - name: Run IDE
         run: ${{ matrix.runIde }}
+        working-directory: intellij-plugin
 
       # Wait for IDEA to be started
       - name: Health Check
@@ -63,3 +65,4 @@ jobs:
       # Run tests
       - name: Tests
         run: ./gradlew test
+        working-directory: intellij-plugin

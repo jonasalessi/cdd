@@ -2,10 +2,11 @@
 # Running the publishPlugin task requires all the following secrets to be provided: PUBLISH_TOKEN, PRIVATE_KEY, PRIVATE_KEY_PASSWORD, CERTIFICATE_CHAIN.
 # See https://plugins.jetbrains.com/docs/intellij/plugin-signing.html for more information.
 
-name: Release
+name: intellij-plugin Release
+
 on:
   release:
-    types: [prereleased, released]
+    types: [ prereleased, released ]
 
 jobs:
 
@@ -13,6 +14,7 @@ jobs:
   release:
     name: Publish Plugin
     runs-on: ubuntu-latest
+    if: startsWith(github.event.release.tag_name, 'plugin-v')
     permissions:
       contents: write
       pull-requests: write
@@ -49,6 +51,7 @@ jobs:
         if: ${{ github.event.release.body != '' }}
         env:
           CHANGELOG: ${{ github.event.release.body }}
+        working-directory: intellij-plugin
         run: |
           RELEASE_NOTE="./build/tmp/release_note.txt"
           mkdir -p "$(dirname "$RELEASE_NOTE")"
@@ -64,12 +67,13 @@ jobs:
           PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
           PRIVATE_KEY_PASSWORD: ${{ secrets.PRIVATE_KEY_PASSWORD }}
         run: ./gradlew publishPlugin
+        working-directory: intellij-plugin
 
       # Upload an artifact as a release asset
       - name: Upload Release Asset
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release upload ${{ github.event.release.tag_name }} ./build/distributions/*
+        run: gh release upload ${{ github.event.release.tag_name }} ./intellij-plugin/build/distributions/*
 
       # Create a pull request
       - name: Create Pull Request
@@ -85,7 +89,8 @@ jobs:
           git config user.name "GitHub Action"
 
           git checkout -b $BRANCH
-          git commit -am "Changelog update - $VERSION"
+          git add intellij-plugin/CHANGELOG.md
+          git commit -m "Changelog update - $VERSION"
           git push --set-upstream origin $BRANCH
 
           gh label create "$LABEL" \

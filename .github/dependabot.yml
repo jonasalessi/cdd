@@ -1,0 +1,14 @@
+version: 2
+updates:
+  - package-ecosystem: gradle
+    directory: /icp-cli
+    schedule:
+      interval: daily
+  - package-ecosystem: gradle
+    directory: /intellij-plugin
+    schedule:
+      interval: daily
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
