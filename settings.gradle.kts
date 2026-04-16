@@ -1,6 +1,4 @@
 rootProject.name = "cdd"
 
-include(":core")
-include(":languages:java")
-include(":languages:kotlin")
-include(":cli")
+includeBuild("icp-cli")
+includeBuild("intellij-plugin")

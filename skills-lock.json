@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "oo-solid-guide": {
+      "source": "jonasalessi/skills",
+      "sourceType": "github",
+      "computedHash": "202c35cb5614e69d6e97aa9a6084c28836def78d833c61fec186285cca8fd4d1"
+    }
+  }
+}
