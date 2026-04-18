@@ -30,7 +30,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v5
 
       - name: Build and Test
-        run: ./gradlew clean build coverageReport
+        run: ./gradlew --no-daemon clean build coverageReport
         working-directory: icp-cli
 
       - name: Collect Tests Result

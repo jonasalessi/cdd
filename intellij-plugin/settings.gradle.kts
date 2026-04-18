@@ -4,8 +4,11 @@ plugins {
 
 rootProject.name = "cdd-intellij-plugin"
 
-includeBuild("../icp-cli") {
-    dependencySubstitution {
-        substitute(module("com.cdd:core")).using(project(":core"))
+val icpCliPath = file("../icp-cli")
+if (icpCliPath.exists()) {
+    includeBuild("../icp-cli") {
+        dependencySubstitution {
+            substitute(module("com.cdd:core")).using(project(":core"))
+        }
     }
 }

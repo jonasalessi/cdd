@@ -63,7 +63,7 @@ jobs:
 
       # Build plugin
       - name: Build plugin
-        run: ./gradlew buildPlugin
+        run: ./gradlew --no-daemon buildPlugin
         working-directory: intellij-plugin
 
       # Prepare plugin archive content for creating artifact
@@ -117,7 +117,7 @@ jobs:
 
       # Run tests
       - name: Run Tests
-        run: ./gradlew check
+        run: ./gradlew --no-daemon check
         working-directory: intellij-plugin
 
       # Collect Tests Result of failed tests
@@ -207,7 +207,7 @@ jobs:
 
       # Run Verify Plugin task and IntelliJ Plugin Verifier tool
       - name: Run Plugin Verification tasks
-        run: ./gradlew verifyPlugin
+        run: ./gradlew --no-daemon verifyPlugin
         working-directory: intellij-plugin
 
       # Collect Plugin Verifier Result
