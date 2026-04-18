@@ -11,7 +11,7 @@ dependencies {
     implementation("com.charleskorn.kaml:kaml:0.104.0")
 
     // Markdown Generation
-    implementation("org.commonmark:commonmark:0.21.0")
+    implementation("org.commonmark:commonmark:0.28.0")
 
     // Logging API
     implementation("org.slf4j:slf4j-api:2.0.17")
