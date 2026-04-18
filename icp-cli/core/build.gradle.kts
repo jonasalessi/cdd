@@ -14,7 +14,7 @@ dependencies {
     implementation("org.commonmark:commonmark:0.21.0")
 
     // Logging API
-    implementation("org.slf4j:slf4j-api:2.0.9")
+    implementation("org.slf4j:slf4j-api:2.0.17")
 
     // Testing
     testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
