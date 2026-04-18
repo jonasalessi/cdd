@@ -5,7 +5,7 @@ plugins {
 
 dependencies {
     // Serialization
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
 
     // YAML Config
     implementation("com.charleskorn.kaml:kaml:0.104.0")
