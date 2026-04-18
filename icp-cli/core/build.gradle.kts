@@ -18,5 +18,5 @@ dependencies {
 
     // Testing
     testImplementation("io.kotest:kotest-runner-junit5:6.1.11")
-    testImplementation("io.mockk:mockk:1.13.8")
+    testImplementation("io.mockk:mockk:1.14.9")
 }
