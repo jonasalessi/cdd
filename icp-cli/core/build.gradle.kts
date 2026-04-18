@@ -8,7 +8,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
 
     // YAML Config
-    implementation("com.charleskorn.kaml:kaml:0.57.0")
+    implementation("com.charleskorn.kaml:kaml:0.104.0")
 
     // Markdown Generation
     implementation("org.commonmark:commonmark:0.21.0")
