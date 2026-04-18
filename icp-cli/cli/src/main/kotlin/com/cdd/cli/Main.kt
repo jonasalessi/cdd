@@ -13,6 +13,8 @@ import com.cdd.core.scanner.PackageDetector
 import com.cdd.domain.AnalysisResult
 import com.cdd.reporter.*
 import com.github.ajalt.clikt.core.CliktCommand
+import com.github.ajalt.clikt.core.Context
+import com.github.ajalt.clikt.core.main
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.clikt.parameters.options.*
 import com.github.ajalt.clikt.parameters.types.double
@@ -22,10 +24,9 @@ import com.github.ajalt.clikt.parameters.types.int
 import java.io.File
 import kotlin.system.exitProcess
 
-class CddCli : CliktCommand(
-    name = "cdd-cli",
-    help = "Cognitive-Driven Development Analyzer"
-) {
+class CddCli : CliktCommand(name = "cdd-cli") {
+    override fun help(context: Context) = "Cognitive-Driven Development Analyzer"
+
     init {
         versionOption("0.1.0")
         registerAnalyzers()

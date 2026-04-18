@@ -1,6 +1,7 @@
 package com.cdd.cli
 
 import com.cdd.core.registry.AnalyzerRegistry
+import com.github.ajalt.clikt.core.parse
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
