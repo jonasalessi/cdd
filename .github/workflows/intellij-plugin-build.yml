@@ -172,7 +172,7 @@ jobs:
         uses: JetBrains/qodana-action@v2025.3.2
         with:
           cache-default-branch-only: true
-          args: --project-dir,intellij-plugin
+          source-directory: ./intellij-plugin
 
   # Run plugin structure verification along with IntelliJ Plugin Verifier
   verify:
