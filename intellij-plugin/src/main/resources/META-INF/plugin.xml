@@ -16,13 +16,8 @@
     </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <statusBarWidgetFactory id="cdd-status-bar" implementation="com.cdd.ui.statusbar.CDDStatusBarWidgetFactory"/>
-        <notificationGroup
-                id="cddAutoCalculateOnSave"
-                displayType="BALLOON"
-                isLogByDefault="true"
-        />
         <fileDocumentManagerListener implementation="com.cdd.listener.IcpAutoCalculateOnSaveListener"/>
+        <actionOnSaveInfoProvider implementation="com.cdd.settings.CddActionOnSaveInfoProvider"/>
 
         <projectService serviceImplementation="com.cdd.settings.CddConfigService"/>
         <projectConfigurable parentId="tools" instance="com.cdd.settings.CddSettingsConfigurable"

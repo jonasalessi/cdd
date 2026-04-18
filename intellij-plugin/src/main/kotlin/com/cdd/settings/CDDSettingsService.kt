@@ -1,6 +1,5 @@
 package com.cdd.settings
 
-import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.components.*
 
 @Service(Service.Level.APP)
@@ -17,14 +16,8 @@ class CDDSettingsService : PersistentStateComponent<CDDSettingsState> {
     fun isAutoCalculateOnSave(): Boolean = state.autoCalculateOnSave
 
     fun setAutoCalculateOnSave(enabled: Boolean) {
-        if (state.autoCalculateOnSave == enabled) {
-            return
-        }
+        if (state.autoCalculateOnSave == enabled) return
         state.autoCalculateOnSave = enabled
-        ApplicationManager.getApplication()
-            .messageBus
-            .syncPublisher(IcpSettingsListener.TOPIC)
-            .handleAutoCalculateOnSaveChanged(enabled)
     }
 
     companion object {
