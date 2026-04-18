@@ -12,7 +12,7 @@ out
 .cdd.yaml
 core/bin
 cli/bin
-debug
+cdd-debug-*.log
 
 # Ignore Gradle GUI config
 gradle-app.setting
