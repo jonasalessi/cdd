@@ -1,0 +1,39 @@
+name: icp-cli Release
+
+on:
+  release:
+    types: [ created ]
+
+jobs:
+  release:
+    name: Build and Release
+    runs-on: ubuntu-latest
+    if: startsWith(github.event.release.tag_name, 'cli-v')
+
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v5
+
+      - name: Build Artifacts
+        run: ./gradlew :cli:shadowJar :cli:distZip
+        working-directory: icp-cli
+
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            icp-cli/cli/build/distributions/*.zip
+            icp-cli/cli/build/libs/cdd-cli.jar
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
