@@ -15,7 +15,7 @@ dependencies {
     runtimeOnly("org.slf4j:slf4j-simple:2.0.9")
 
     // Testing
-    testImplementation("io.kotest:kotest-runner-junit5:5.8.0")
+    testImplementation("io.kotest:kotest-runner-junit5:6.1.11")
     testImplementation("io.mockk:mockk:1.13.8")
 }
 
