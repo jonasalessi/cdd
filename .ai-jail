@@ -5,4 +5,6 @@
 command = ["codex"]
 rw_maps = []
 ro_maps = []
+hide_dotdirs = []
 no_display = false
+allow_tcp_ports = []
