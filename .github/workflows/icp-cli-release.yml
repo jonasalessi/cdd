@@ -30,7 +30,7 @@ jobs:
         working-directory: icp-cli
 
       - name: Upload Release Assets
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: |
             icp-cli/cli/build/distributions/*.zip
