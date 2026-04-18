@@ -17,11 +17,11 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <fileDocumentManagerListener implementation="com.cdd.listener.IcpAutoCalculateOnSaveListener"/>
-        <actionOnSaveInfoProvider implementation="com.cdd.settings.CddActionOnSaveInfoProvider"/>
+        <actionOnSaveInfoProvider implementation="com.cdd.ui.settings.tools.actionsOnSave.CddActionOnSaveInfoProvider"/>
 
-        <projectService serviceImplementation="com.cdd.settings.CddConfigService"/>
-        <projectConfigurable parentId="tools" instance="com.cdd.settings.CddSettingsConfigurable"
-                             id="com.cdd.settings.CddSettingsConfigurable" displayName="CDD"/>
+        <projectService serviceImplementation="com.cdd.ui.settings.tools.cdd.CddConfigService"/>
+        <projectConfigurable parentId="tools" instance="com.cdd.ui.settings.tools.cdd.CddSettingsConfigurable"
+                             id="com.cdd.ui.settings.tools.cdd.CddSettingsConfigurable" displayName="CDD"/>
     </extensions>
 
     <actions>

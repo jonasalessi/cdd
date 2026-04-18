@@ -1,13 +1,13 @@
 package com.cdd.listener
 
-import com.cdd.analysis.KotlinFileAnalysisRunner
-import com.cdd.settings.CDDSettingsService
+import com.cdd.analyzer.kotlin.KotlinFileAnalysisRunner
+import com.cdd.ui.settings.tools.cdd.CDDSettingsService
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Document
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.fileEditor.FileDocumentManagerListener
-import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.project.ProjectLocator
 import com.intellij.openapi.vfs.VirtualFile
 
 class IcpAutoCalculateOnSaveListener(

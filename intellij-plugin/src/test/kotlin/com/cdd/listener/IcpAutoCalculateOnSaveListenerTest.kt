@@ -1,13 +1,9 @@
 package com.cdd.listener
 
-import com.cdd.analysis.KotlinFileAnalysisRunner
-import com.cdd.domain.AnalysisResult
-import com.cdd.domain.ClassAnalysis
-import com.cdd.domain.IntRangeSerializable
-import com.cdd.domain.MethodAnalysis
-import com.cdd.domain.SlocMetrics
-import com.cdd.settings.CDDSettingsService
-import com.cdd.ui.inlay.CddIcpInlayService
+import com.cdd.analyzer.kotlin.KotlinFileAnalysisRunner
+import com.cdd.domain.*
+import com.cdd.ui.settings.tools.cdd.CDDSettingsService
+import com.cdd.ui.editor.inlay.CddIcpInlayService
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
