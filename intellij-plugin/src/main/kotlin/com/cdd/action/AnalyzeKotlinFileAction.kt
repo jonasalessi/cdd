@@ -1,6 +1,6 @@
 package com.cdd.action
 
-import com.cdd.analysis.KotlinFileAnalysisRunner
+import com.cdd.analyzer.kotlin.KotlinFileAnalysisRunner
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
