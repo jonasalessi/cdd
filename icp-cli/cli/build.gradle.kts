@@ -12,7 +12,7 @@ dependencies {
 
     // CLI Framework
     implementation("com.github.ajalt.clikt:clikt:5.1.0")
-    runtimeOnly("org.slf4j:slf4j-simple:2.0.9")
+    runtimeOnly("org.slf4j:slf4j-simple:2.0.17")
 
     // Testing
     testImplementation("io.kotest:kotest-runner-junit5:6.1.11")
