@@ -35,7 +35,7 @@ jobs:
 
       - name: Collect Tests Result
         if: ${{ failure() }}
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: tests-result
           path: icp-cli/build/reports/tests
