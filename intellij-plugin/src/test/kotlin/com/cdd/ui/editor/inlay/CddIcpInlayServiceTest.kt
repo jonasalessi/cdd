@@ -1,10 +1,19 @@
 package com.cdd.ui.editor.inlay
 
 import com.cdd.domain.*
-import com.intellij.testFramework.fixtures.BasePlatformTestCase
+import com.intellij.openapi.editor.ex.EditorEx
+import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
+import java.awt.Cursor
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
+import org.junit.Assert.assertSame
+import org.junit.Assert.assertTrue
+import org.junit.Test
 
-class CddIcpInlayServiceTest : BasePlatformTestCase() {
-    fun testShouldRenderClassAndMethodInlays() {
+class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
+    @Test
+    fun `should render class and method inlays`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
             """
@@ -19,15 +28,16 @@ class CddIcpInlayServiceTest : BasePlatformTestCase() {
 
         assertEquals(
             listOf(
-                "  Class ICP: 3 | SLOC: 3/4",
-                "  ICP: 1 | SLOC: 1/1",
-                "  ICP: 2 | SLOC: 1/1"
+                "Class ICP: 3 | SLOC: 3/4",
+                "ICP: 1 | SLOC: 1/1",
+                "ICP: 2 | SLOC: 1/1"
             ),
             cddInlayTexts()
         )
     }
 
-    fun testShouldAttachDialogContentToRenderedInlays() {
+    @Test
+    fun `should attach dialog content to rendered inlays`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
             """
@@ -50,7 +60,8 @@ class CddIcpInlayServiceTest : BasePlatformTestCase() {
         assertTrue(renderers[1].report.message.contains("Type: Method"))
     }
 
-    fun testShouldClearPreviousInlaysBeforeRendering() {
+    @Test
+    fun `should clear previous inlays before rendering`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
             """
@@ -66,7 +77,8 @@ class CddIcpInlayServiceTest : BasePlatformTestCase() {
         assertEquals(3, cddInlayTexts().size)
     }
 
-    fun testShouldClearInlaysWhenAnalysisHasErrors() {
+    @Test
+    fun `should clear inlays when analysis has errors`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
             """
@@ -93,7 +105,94 @@ class CddIcpInlayServiceTest : BasePlatformTestCase() {
         assertTrue(cddInlayTexts().isEmpty())
     }
 
-    fun testShouldClearAllInlaysFromOpenEditors() {
+    @Test
+    fun `should show hand cursor when hovering CDD inlay`() {
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+            }
+            """.trimIndent()
+        )
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+        val editor = myFixture.editor as EditorEx
+        val cddInlay = editor.inlayModel
+            .getAfterLineEndElementsInRange(0, editor.document.textLength)
+            .first { it.renderer is CddIcpTextRenderer }
+
+        EditorCddIcpInlayService.applyInlayCursor(editor, cddInlay)
+
+        assertEquals(Cursor.HAND_CURSOR, editor.contentComponent.cursor.type)
+    }
+
+    @Test
+    fun `should clear hand cursor when hovering outside CDD inlay`() {
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+            }
+            """.trimIndent()
+        )
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+        val editor = myFixture.editor as EditorEx
+        val cddInlay = editor.inlayModel
+            .getAfterLineEndElementsInRange(0, editor.document.textLength)
+            .first { it.renderer is CddIcpTextRenderer }
+        EditorCddIcpInlayService.applyInlayCursor(editor, cddInlay)
+
+        EditorCddIcpInlayService.applyInlayCursor(editor, null)
+
+        assertFalse(editor.contentComponent.cursor.type == Cursor.HAND_CURSOR)
+    }
+
+    @Test
+    fun `should mark inlay as hovered when pointer enters inlay`() {
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+            }
+            """.trimIndent()
+        )
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+        val editor = myFixture.editor as EditorEx
+        val cddInlay = editor.inlayModel
+            .getAfterLineEndElementsInRange(0, editor.document.textLength)
+            .first { it.renderer is CddIcpTextRenderer }
+
+        EditorCddIcpInlayService.applyInlayCursor(editor, cddInlay)
+
+        assertSame(cddInlay, editor.getUserData(EditorCddIcpInlayService.hoveredInlayKey))
+    }
+
+    @Test
+    fun `should unmark inlay when pointer leaves inlay`() {
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+            }
+            """.trimIndent()
+        )
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+        val editor = myFixture.editor as EditorEx
+        val cddInlay = editor.inlayModel
+            .getAfterLineEndElementsInRange(0, editor.document.textLength)
+            .first { it.renderer is CddIcpTextRenderer }
+        EditorCddIcpInlayService.applyInlayCursor(editor, cddInlay)
+
+        EditorCddIcpInlayService.applyInlayCursor(editor, null)
+
+        assertNull(editor.getUserData(EditorCddIcpInlayService.hoveredInlayKey))
+    }
+
+    @Test
+    fun `should clear all inlays from open editors`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
             """

@@ -9,6 +9,8 @@ import com.intellij.openapi.editor.Inlay
 import com.intellij.openapi.editor.colors.EditorFontType
 import com.intellij.openapi.editor.event.EditorMouseEvent
 import com.intellij.openapi.editor.event.EditorMouseListener
+import com.intellij.openapi.editor.event.EditorMouseMotionListener
+import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.openapi.editor.markup.TextAttributes
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.TextEditor
@@ -16,8 +18,12 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.Key
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.ui.JBColor
+import java.awt.Cursor
 import java.awt.Graphics
 import java.awt.Rectangle
+
+private val HAND_CURSOR: Cursor = Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+private val HOVER_COLOR: JBColor = JBColor.namedColor("Link.activeForeground", JBColor(0x2470B3, 0x589DF6))
 
 internal interface CddIcpInlayService {
     fun render(project: Project, file: VirtualFile, result: AnalysisResult)
@@ -25,6 +31,7 @@ internal interface CddIcpInlayService {
 
 internal object EditorCddIcpInlayService : CddIcpInlayService {
     private val listenerInstalledKey = Key.create<Boolean>("cdd.icp.inlay.listener.installed")
+    internal val hoveredInlayKey: Key<Inlay<*>> = Key.create("cdd.icp.inlay.hovered")
     private var reportFactory: CddIcpReportFactory = AnalysisCddIcpReportFactory
     private var reportPresenter: CddIcpReportPresenter = DialogCddIcpReportPresenter
 
@@ -43,7 +50,7 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
             .filterIsInstance<TextEditor>()
             .map { it.editor }
             .forEach { editor ->
-                ensureClickListener(editor, project)
+                ensureMouseListeners(editor, project)
                 clear(editor)
                 if (result.errors.isEmpty()) {
                     addHints(editor, result)
@@ -87,11 +94,11 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
     }
 
     private fun classHintText(classAnalysis: ClassAnalysis): String {
-        return "  Class ICP: ${formatNumber(classAnalysis.totalIcp)} | SLOC: ${classAnalysis.sloc.codeOnly}/${classAnalysis.sloc.total}"
+        return "Class ICP: ${formatNumber(classAnalysis.totalIcp)} | SLOC: ${classAnalysis.sloc.codeOnly}/${classAnalysis.sloc.total}"
     }
 
     private fun methodHintText(methodAnalysis: MethodAnalysis): String {
-        return "  ICP: ${formatNumber(methodAnalysis.totalIcp)} | SLOC: ${methodAnalysis.sloc.codeOnly}/${methodAnalysis.sloc.total}"
+        return "ICP: ${formatNumber(methodAnalysis.totalIcp)} | SLOC: ${methodAnalysis.sloc.codeOnly}/${methodAnalysis.sloc.total}"
     }
 
     private fun formatNumber(value: Double): String {
@@ -102,7 +109,7 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
         }
     }
 
-    private fun ensureClickListener(editor: Editor, project: Project) {
+    private fun ensureMouseListeners(editor: Editor, project: Project) {
         if (editor.getUserData(listenerInstalledKey) == true) {
             return
         }
@@ -112,8 +119,34 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
                 reportPresenter.show(project, renderer.report)
                 event.consume()
             }
+
+            override fun mouseExited(event: EditorMouseEvent) {
+                applyInlayCursor(event.editor, null)
+            }
+        })
+        editor.addEditorMouseMotionListener(object : EditorMouseMotionListener {
+            override fun mouseMoved(event: EditorMouseEvent) {
+                applyInlayCursor(event.editor, event.inlay)
+            }
         })
         editor.putUserData(listenerInstalledKey, true)
+    }
+
+    internal fun applyInlayCursor(editor: Editor, inlay: Inlay<*>?) {
+        val editorEx = editor as? EditorEx ?: return
+        val previous = editor.getUserData(hoveredInlayKey)
+        val current = if (inlay?.renderer is CddIcpTextRenderer) inlay else null
+        if (previous !== current) {
+            editor.putUserData(hoveredInlayKey, current)
+            previous?.let { repaintInlay(editor, it) }
+            current?.let { repaintInlay(editor, it) }
+        }
+        editorEx.setCustomCursor(this, if (current != null) HAND_CURSOR else null)
+    }
+
+    private fun repaintInlay(editor: Editor, inlay: Inlay<*>) {
+        val bounds = inlay.bounds ?: return
+        editor.contentComponent.repaint(bounds)
     }
 }
 
@@ -129,8 +162,14 @@ internal class CddIcpTextRenderer(
     override fun paint(inlay: Inlay<*>, g: Graphics, targetRegion: Rectangle, textAttributes: TextAttributes) {
         val editor = inlay.editor
         g.font = font(editor)
-        g.color = JBColor.GRAY
-        g.drawString(text, targetRegion.x, targetRegion.y + editor.ascent)
+        val isHovered = editor.getUserData(EditorCddIcpInlayService.hoveredInlayKey) === inlay
+        g.color = if (isHovered) HOVER_COLOR else JBColor.GRAY
+        val baselineY = targetRegion.y + editor.ascent
+        g.drawString(text, targetRegion.x, baselineY)
+        if (isHovered) {
+            val width = g.fontMetrics.stringWidth(text)
+            g.drawLine(targetRegion.x, baselineY + 1, targetRegion.x + width - 1, baselineY + 1)
+        }
     }
 
     private fun font(editor: Editor) = editor.colorsScheme.getFont(EditorFontType.PLAIN)
