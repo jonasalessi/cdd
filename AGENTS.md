@@ -203,4 +203,8 @@ You must follow these coding standards:
 
 1. **Skip skill activation** because "it's a small change" — every domain change requires its skill
 2. **Activate only one skill** when the code touches multiple domains
-3. **commit code** without user requesting it
+3. **commit code** without user requesFting it
+
+## Tests
+
+**Method naming convention**: Use `back ticks`
