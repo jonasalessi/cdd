@@ -14,8 +14,6 @@ class ConsoleReporter : ReportGenerator {
     private val RESET = "\u001B[0m"
     private val RED = "\u001B[31m"
     private val GREEN = "\u001B[32m"
-    private val YELLOW = "\u001B[33m"
-    private val CYAN = "\u001B[36m"
 
     override fun generate(analysis: AggregatedAnalysis, config: CddConfig): String {
         return buildString {
@@ -45,39 +43,6 @@ class ConsoleReporter : ReportGenerator {
             val largest = analysis.largestClasses.firstOrNull()
             if (largest != null) {
                 appendLine("Largest class:           ${largest.name} (${String.format("%.1f", largest.totalIcp)} ICP)")
-            }
-            appendLine()
-
-            appendLine("${BOLD}SLOC Metrics${RESET}")
-            appendLine("─".repeat(60))
-            appendLine(
-                "Average SLOC per class:  ${
-                    String.format(
-                        "%.1f",
-                        analysis.slocMetrics.averageSlocPerClass
-                    )
-                } (σ=${String.format("%.1f", analysis.slocMetrics.slocStdDev)})"
-            )
-            appendLine(
-                "Average SLOC per method: ${
-                    String.format(
-                        "%.1f",
-                        analysis.slocMetrics.averageSlocPerMethod
-                    )
-                } (median=${analysis.slocMetrics.medianSlocPerMethod})"
-            )
-            appendLine("Methods over 24 SLOC:    ${if (analysis.methodsOverSlocLimit.isNotEmpty()) YELLOW else GREEN}${analysis.methodsOverSlocLimit.size}${RESET}")
-            appendLine("Total SLOC:              ${analysis.slocMetrics.totalSloc}")
-            appendLine("Correlation (ICP vs SLOC): ${CYAN}${String.format("%.2f", analysis.icpSlocCorrelation)}${RESET}")
-            appendLine()
-
-            appendLine("${BOLD}SLOC Distribution${RESET}")
-            appendLine("─".repeat(60))
-            val maxCount = analysis.slocMetrics.slocDistribution.values.maxOrNull() ?: 1
-            analysis.slocMetrics.slocDistribution.forEach { (bucket, count) ->
-                val barLength = (count.toDouble() / maxCount * 40).toInt()
-                val bar = "█".repeat(barLength)
-                appendLine("${bucket.toString().padStart(4)}+: ${bar.padEnd(40)} ($count)")
             }
             appendLine()
 

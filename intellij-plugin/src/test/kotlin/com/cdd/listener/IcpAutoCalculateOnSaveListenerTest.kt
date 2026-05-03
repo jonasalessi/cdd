@@ -108,12 +108,10 @@ class IcpAutoCalculateOnSaveListenerTest : BasePlatformTestCase() {
                             className = "Sample",
                             lineRange = IntRangeSerializable(2, 2),
                             totalIcp = 1.0,
-                            icpBreakdown = emptyMap(),
-                            sloc = SlocMetrics(1, 1, 1, 0, 0)
+                            icpBreakdown = emptyMap()
                         )
                     ),
-                    isOverLimit = false,
-                    sloc = SlocMetrics(3, 2, 2, 0, 1)
+                    isOverLimit = false
                 )
             ),
             totalIcp = 2.0

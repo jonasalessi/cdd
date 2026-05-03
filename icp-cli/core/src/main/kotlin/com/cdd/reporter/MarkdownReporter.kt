@@ -25,25 +25,6 @@ class MarkdownReporter : ReportGenerator {
             appendLine("| Classes over limit | ${analysis.classesOverLimit.size} |")
             appendLine()
 
-            appendLine("## SLOC Metrics")
-            appendLine()
-            appendLine("| Metric | Value |")
-            appendLine("| :--- | :--- |")
-            appendLine("| Total SLOC | ${analysis.slocMetrics.totalSloc} |")
-            appendLine("| Avg SLOC per class | ${String.format("%.1f", analysis.slocMetrics.averageSlocPerClass)} |")
-            appendLine("| Avg SLOC per method | ${String.format("%.1f", analysis.slocMetrics.averageSlocPerMethod)} |")
-            appendLine("| ICP-SLOC Correlation | ${String.format("%.2f", analysis.icpSlocCorrelation)} |")
-            appendLine()
-
-            appendLine("## SLOC Distribution")
-            appendLine()
-            appendLine("| Bucket (SLOC) | Count |")
-            appendLine("| :--- | :---: |")
-            analysis.slocMetrics.slocDistribution.forEach { (bucket, count) ->
-                appendLine("| $bucket+ | $count |")
-            }
-            appendLine()
-
             appendLine("## ICP Distribution")
             appendLine()
             appendLine("| Type | Count | Percentage |")

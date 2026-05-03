@@ -127,11 +127,11 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
     }
 
     private fun classHintText(classAnalysis: ClassAnalysis): String {
-        return "Class ICP: ${formatNumber(classAnalysis.totalIcp)} | SLOC: ${classAnalysis.sloc.codeOnly}/${classAnalysis.sloc.total}"
+        return "Class ICP: ${formatNumber(classAnalysis.totalIcp)}"
     }
 
     private fun methodHintText(methodAnalysis: MethodAnalysis): String {
-        return "ICP: ${formatNumber(methodAnalysis.totalIcp)} | SLOC: ${methodAnalysis.sloc.codeOnly}/${methodAnalysis.sloc.total}"
+        return "ICP: ${formatNumber(methodAnalysis.totalIcp)}"
     }
 
     private fun formatNumber(value: Double): String {

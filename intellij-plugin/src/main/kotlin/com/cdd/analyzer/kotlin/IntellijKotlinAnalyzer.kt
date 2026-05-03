@@ -9,7 +9,6 @@ import com.cdd.domain.ClassAnalysis
 import com.cdd.domain.ErrorSeverity
 import com.cdd.domain.IntRangeSerializable
 import com.cdd.domain.MethodAnalysis
-import com.cdd.domain.SlocMetrics
 import com.intellij.openapi.project.Project
 import org.jetbrains.kotlin.psi.KtClass
 import org.jetbrains.kotlin.psi.KtClassBody
@@ -90,7 +89,7 @@ internal class IntellijKotlinAnalyzer(
 
         val classIcpInstances = scanner.getIcpInstances()
         val lineRange = createLineRange(fullContent, ktClass.startOffset, ktClass.textRange.endOffset)
-        val methods = analyzeMethods(ktClass, classIcpInstances, fullContent, config)
+        val methods = analyzeMethods(ktClass, classIcpInstances, fullContent)
         val totalIcp = classIcpInstances.sumOf { it.weight }
         val classLimit = resolveIcpLimit(file, config) ?: Double.MAX_VALUE
 
@@ -101,16 +100,14 @@ internal class IntellijKotlinAnalyzer(
             totalIcp = totalIcp,
             icpBreakdown = classIcpInstances.groupBy { it.type },
             methods = methods,
-            isOverLimit = totalIcp > classLimit,
-            sloc = calculateSloc(fullContent, lineRange)
+            isOverLimit = totalIcp > classLimit
         )
     }
 
     private fun analyzeMethods(
         ktClass: KtClass,
         classIcpInstances: List<com.cdd.domain.IcpInstance>,
-        fullContent: String,
-        config: CddConfig
+        fullContent: String
     ): List<MethodAnalysis> {
         val methods = mutableListOf<MethodAnalysis>()
         ktClass.accept(object : KtTreeVisitorVoid() {
@@ -124,16 +121,13 @@ internal class IntellijKotlinAnalyzer(
                 val methodIcpInstances = classIcpInstances.filter { instance ->
                     instance.line in lineRange.start..lineRange.endInclusive
                 }
-                val methodSloc = calculateSloc(fullContent, lineRange)
                 methods.add(
                     MethodAnalysis(
                         name = function.name ?: "Unknown",
                         className = ktClass.name ?: "Unknown",
                         lineRange = lineRange,
                         totalIcp = methodIcpInstances.sumOf { it.weight },
-                        icpBreakdown = methodIcpInstances.groupBy { it.type },
-                        sloc = methodSloc,
-                        isOverSlocLimit = methodSloc.codeOnly > config.sloc.methodLimit
+                        icpBreakdown = methodIcpInstances.groupBy { it.type }
                     )
                 )
             }
@@ -155,51 +149,6 @@ internal class IntellijKotlinAnalyzer(
     private fun getLineNumber(content: String, offset: Int): Int {
         val safeOffset = offset.coerceIn(0, content.length)
         return content.substring(0, safeOffset).count { it == '\n' } + 1
-    }
-
-    private fun calculateSloc(fullContent: String, lineRange: IntRangeSerializable): SlocMetrics {
-        val allLines = fullContent.lines()
-        val startIndex = (lineRange.start - 1).coerceAtLeast(0)
-        val endIndex = (lineRange.endInclusive - 1).coerceAtMost(allLines.lastIndex)
-        if (allLines.isEmpty() || startIndex > endIndex) {
-            return SlocMetrics(0, 0, 0, 0, 0)
-        }
-
-        var total = 0
-        var codeOnly = 0
-        var comments = 0
-        var blankLines = 0
-        var inBlockComment = false
-
-        for (line in allLines.subList(startIndex, endIndex + 1)) {
-            total += 1
-            val trimmed = line.trim()
-            when {
-                trimmed.isEmpty() -> blankLines += 1
-                trimmed.startsWith("//") -> comments += 1
-                trimmed.startsWith("/*") -> {
-                    comments += 1
-                    if (!trimmed.endsWith("*/")) {
-                        inBlockComment = true
-                    }
-                }
-                inBlockComment -> {
-                    comments += 1
-                    if (trimmed.endsWith("*/")) {
-                        inBlockComment = false
-                    }
-                }
-                else -> codeOnly += 1
-            }
-        }
-
-        return SlocMetrics(
-            total = total,
-            codeOnly = codeOnly,
-            withComments = codeOnly + comments,
-            comments = comments,
-            blankLines = blankLines
-        )
     }
 
     private fun failedResult(file: File, message: String): AnalysisResult {

@@ -21,6 +21,7 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
     fun resetInlaySettings() {
         CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState())
     }
+
     @Test
     fun `should render class and method inlays`() {
         val psiFile = myFixture.configureByText(
@@ -37,9 +38,9 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
 
         assertEquals(
             listOf(
-                "Class ICP: 3 | SLOC: 3/4",
-                "ICP: 1 | SLOC: 1/1",
-                "ICP: 2 | SLOC: 1/1"
+                "Class ICP: 3",
+                "ICP: 1",
+                "ICP: 2"
             ),
             cddInlayTexts()
         )
@@ -331,9 +332,9 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
                     lineRange = IntRangeSerializable(1, 4),
                     totalIcp = 3.0,
                     icpBreakdown = mapOf(
-                        com.cdd.domain.IcpType.CODE_BRANCH to listOf(
-                            com.cdd.domain.IcpInstance(
-                                type = com.cdd.domain.IcpType.CODE_BRANCH,
+                        IcpType.CODE_BRANCH to listOf(
+                            IcpInstance(
+                                type = IcpType.CODE_BRANCH,
                                 line = 2,
                                 column = 5,
                                 description = "if branch",
@@ -348,29 +349,26 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
                             lineRange = IntRangeSerializable(2, 2),
                             totalIcp = 1.0,
                             icpBreakdown = mapOf(
-                                com.cdd.domain.IcpType.CONDITION to listOf(
-                                    com.cdd.domain.IcpInstance(
-                                        type = com.cdd.domain.IcpType.CONDITION,
+                                IcpType.CONDITION to listOf(
+                                    IcpInstance(
+                                        type = IcpType.CONDITION,
                                         line = 2,
                                         column = 12,
                                         description = "condition expression",
                                         weight = 1.0
                                     )
                                 )
-                            ),
-                            sloc = SlocMetrics(1, 1, 1, 0, 0)
+                            )
                         ),
                         MethodAnalysis(
                             name = "second",
                             className = "Sample",
                             lineRange = IntRangeSerializable(3, 3),
                             totalIcp = 2.0,
-                            icpBreakdown = emptyMap(),
-                            sloc = SlocMetrics(1, 1, 1, 0, 0)
+                            icpBreakdown = emptyMap()
                         )
                     ),
-                    isOverLimit = false,
-                    sloc = SlocMetrics(4, 3, 3, 0, 1)
+                    isOverLimit = false
                 )
             ),
             totalIcp = 3.0

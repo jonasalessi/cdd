@@ -10,21 +10,6 @@
 | Average ICP per class | 3.00 |
 | Classes over limit | 0 |
 
-## SLOC Metrics
-
-| Metric | Value |
-| :--- | :--- |
-| Total SLOC | 9 |
-| Avg SLOC per class | 9.0 |
-| Avg SLOC per method | 7.0 |
-| ICP-SLOC Correlation | 0.00 |
-
-## SLOC Distribution
-
-| Bucket (SLOC) | Count |
-| :--- | :---: |
-| 0+ | 1 |
-
 ## ICP Distribution
 
 | Type | Count | Percentage |

@@ -17,7 +17,6 @@ CDD CLI is a tool designed to measure and manage code complexity based on the pr
 
 - **Multi-Language Support**: Analyzes both **Java** and **Kotlin** source code.
 - **ICP Calculation**: Measures complexity based on branching logic, coupling, and exception handling.
-- **SLOC Metrics**: Provides physical Source Lines of Code distribution.
 - **Actionable Recommendations**: Suggests refactoring targets based on complexity thresholds.
 - **Multiple Output Formats**: Supports Console, JSON, XML, and Markdown.
 
@@ -177,13 +176,6 @@ include: []
 # exclude: Files matching these patterns will be skipped (e.g., generated code, tests).
 exclude: [] 
 
-# -----------------------------------------------------------------------------
-# SLOC (SOURCE LINES OF CODE) METRICS
-# -----------------------------------------------------------------------------
-sloc:
-   # methodLimit: Maximum lines of code allowed in a single method.
-   # Flagged separately from ICP in some reports.
-   methodLimit: 24
 ```
 
 ### Metrics and Limits

@@ -6,7 +6,6 @@ import com.cdd.core.config.ReportingConfig
 import com.cdd.domain.IcpType
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import java.io.File
 
@@ -74,15 +73,6 @@ class KotlinAnalyzerTest : StringSpec({
         // Expected internal couplings:
         // Only 1 for FieldValidationException in isNameOk() and isIdOk()
         internalCouplings shouldBe 1
-    }
-
-    "should calculate SLOC metrics correctly" {
-        val file = File("src/test/resources/kotlin-samples/SampleConstructs.kt")
-        val result = analyzer.analyze(file, config)
-        val classAnalysis = result.classes.first()
-
-        classAnalysis.sloc.total shouldBeGreaterThan 0
-        classAnalysis.sloc.codeOnly shouldBeGreaterThan 0
     }
 
     "should count safe call as branch but not condition" {

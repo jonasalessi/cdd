@@ -3,7 +3,6 @@ package com.cdd.ui.settings.tools.cdd
 import com.cdd.CddConstants
 import com.cdd.core.config.CddConfig
 import com.cdd.core.config.InternalCouplingConfig
-import com.cdd.core.config.SlocConfig
 
 object CddConfigMapper {
 
@@ -16,8 +15,7 @@ object CddConfigMapper {
             autoDetect = config.internalCoupling.autoDetect,
             packages = config.internalCoupling.packages.toMutableList(),
             include = config.include.toMutableList(),
-            exclude = config.exclude.toMutableList(),
-            methodLimit = config.sloc.methodLimit
+            exclude = config.exclude.toMutableList()
         )
     }
 
@@ -36,8 +34,7 @@ object CddConfigMapper {
                 packages = model.packages.toList()
             ),
             include = model.include.toList(),
-            exclude = model.exclude.toList(),
-            sloc = SlocConfig(methodLimit = model.methodLimit)
+            exclude = model.exclude.toList()
         )
     }
 

@@ -8,6 +8,5 @@ data class CddSettingsModel(
     var autoDetect: Boolean = true,
     val packages: MutableList<String> = mutableListOf(),
     val include: MutableList<String> = mutableListOf(),
-    val exclude: MutableList<String> = mutableListOf(),
-    var methodLimit: Int = 24
+    val exclude: MutableList<String> = mutableListOf()
 )

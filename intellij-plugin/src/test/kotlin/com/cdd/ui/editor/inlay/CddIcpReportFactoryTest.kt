@@ -23,7 +23,6 @@ class CddIcpReportFactoryTest {
         assertEquals("CDD Report: Sample.first", report.title)
         assertTrue(report.message.contains("Type: Method"))
         assertTrue(report.message.contains("Class: Sample"))
-        assertTrue(report.message.contains("Over SLOC Limit: false"))
     }
 
     @Test
@@ -53,8 +52,7 @@ class CddIcpReportFactoryTest {
                 )
             ),
             methods = listOf(sampleMethodAnalysis()),
-            isOverLimit = false,
-            sloc = SlocMetrics(4, 3, 3, 0, 1)
+            isOverLimit = false
         )
     }
 
@@ -74,8 +72,7 @@ class CddIcpReportFactoryTest {
                         weight = 1.0
                     )
                 )
-            ),
-            sloc = SlocMetrics(1, 1, 1, 0, 0)
+            )
         )
     }
 }

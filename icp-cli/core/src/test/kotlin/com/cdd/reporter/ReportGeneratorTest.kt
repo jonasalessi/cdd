@@ -15,15 +15,6 @@ class ReportGeneratorTest : FunSpec({
         )
     )
 
-    val slocStats = SlocStatistics(
-        totalSloc = 100,
-        averageSlocPerClass = 50.0,
-        averageSlocPerMethod = 10.0,
-        medianSlocPerMethod = 8,
-        slocStdDev = 5.0,
-        slocDistribution = mapOf(0 to 2)
-    )
-
     val aggregate = AggregatedAnalysis(
         totalFiles = 2,
         totalClasses = 2,
@@ -37,15 +28,11 @@ class ReportGeneratorTest : FunSpec({
                 totalIcp = 12.0,
                 icpBreakdown = mapOf(IcpType.CODE_BRANCH to listOf(IcpInstance(IcpType.CODE_BRANCH, 5, 1, "if", 1.0))),
                 methods = emptyList(),
-                isOverLimit = true,
-                sloc = SlocMetrics(100, 80, 90, 10, 10)
+                isOverLimit = true
             )
         ),
         icpDistribution = mapOf(IcpType.CODE_BRANCH to 5, IcpType.CONDITION to 10),
         largestClasses = emptyList(),
-        slocMetrics = slocStats,
-        icpSlocCorrelation = 0.85,
-        methodsOverSlocLimit = emptyList(),
         suggestions = listOf("Refactor HeavyClass")
     )
 

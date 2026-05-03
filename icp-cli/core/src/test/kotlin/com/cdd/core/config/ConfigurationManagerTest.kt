@@ -17,7 +17,6 @@ class ConfigurationManagerTest : DescribeSpec({
         it("should return default config when no file exists") {
             val config = ConfigurationManager.loadConfig(tempDir)
             config.metrics.shouldNotBeEmpty()
-            config.sloc.methodLimit shouldBe 24
         }
 
         it("should load valid YAML configuration") {
@@ -29,8 +28,6 @@ class ConfigurationManagerTest : DescribeSpec({
                 icp-limits:
                   java:
                     ".*": 12.0
-                sloc:
-                  methodLimit: 30
             """.trimIndent()
             val yamlFile = File(tempDir, ".cdd.yml")
             yamlFile.writeText(yamlContent)
@@ -38,7 +35,6 @@ class ConfigurationManagerTest : DescribeSpec({
             val config = ConfigurationManager.loadConfig(tempDir)
             val javaMetrics = config.metrics["java"]?.get(".*")
             javaMetrics?.get("code_branch") shouldBe 15.0
-            config.sloc.methodLimit shouldBe 30
             config.icpLimits.shouldNotBeEmpty()
             config.icpLimits["java"]!![".*"] shouldBe 12.0
 

@@ -3,7 +3,6 @@ package com.cdd.ui.settings.tools.cdd
 import com.cdd.CddConstants
 import com.cdd.core.config.CddConfig
 import com.cdd.core.config.InternalCouplingConfig
-import com.cdd.core.config.SlocConfig
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -22,8 +21,7 @@ class CddConfigAdapterTest {
             ),
             internalCoupling = InternalCouplingConfig(autoDetect = false, packages = listOf("com.example")),
             include = listOf("src/main/**"),
-            exclude = listOf("build/**"),
-            sloc = SlocConfig(methodLimit = 42)
+            exclude = listOf("build/**")
         )
 
         val model = CddConfigMapper.toSettingsModel(config)
@@ -36,7 +34,6 @@ class CddConfigAdapterTest {
         assertEquals(listOf("com.example"), model.packages)
         assertEquals(listOf("src/main/**"), model.include)
         assertEquals(listOf("build/**"), model.exclude)
-        assertEquals(42, model.methodLimit)
     }
 
     @Test
@@ -49,8 +46,7 @@ class CddConfigAdapterTest {
             autoDetect = false,
             packages = mutableListOf("com.example"),
             include = mutableListOf("src/**"),
-            exclude = mutableListOf("out/**"),
-            methodLimit = 31
+            exclude = mutableListOf("out/**")
         )
 
         val config = CddConfigMapper.toCoreConfig(model)
@@ -63,7 +59,6 @@ class CddConfigAdapterTest {
         assertEquals(listOf("com.example"), config.internalCoupling.packages)
         assertEquals(listOf("src/**"), config.include)
         assertEquals(listOf("out/**"), config.exclude)
-        assertEquals(31, config.sloc.methodLimit)
     }
 
     @Test
@@ -84,8 +79,6 @@ class CddConfigAdapterTest {
               - src/**
             exclude:
               - build/**
-            sloc:
-              methodLimit: 33
         """.trimIndent()
 
         val config = CddConfigYamlCodec.load(yaml)
@@ -96,7 +89,6 @@ class CddConfigAdapterTest {
         assertEquals(listOf("com.example"), config.internalCoupling.packages)
         assertEquals(listOf("src/**"), config.include)
         assertEquals(listOf("build/**"), config.exclude)
-        assertEquals(33, config.sloc.methodLimit)
     }
 
     @Test
@@ -110,8 +102,7 @@ class CddConfigAdapterTest {
             icpLimits = mapOf(CddConstants.LANGUAGE_JAVA to mapOf(".*" to 12.0)),
             internalCoupling = InternalCouplingConfig(autoDetect = true, packages = listOf("com.example")),
             include = listOf("src/**"),
-            exclude = listOf("build/**"),
-            sloc = SlocConfig(methodLimit = 28)
+            exclude = listOf("build/**")
         )
 
         val yaml = CddConfigYamlCodec.dump(config)

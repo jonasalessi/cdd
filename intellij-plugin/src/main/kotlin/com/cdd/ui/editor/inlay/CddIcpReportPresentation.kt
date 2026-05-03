@@ -1,6 +1,9 @@
 package com.cdd.ui.editor.inlay
 
-import com.cdd.domain.*
+import com.cdd.domain.ClassAnalysis
+import com.cdd.domain.IcpInstance
+import com.cdd.domain.IcpType
+import com.cdd.domain.MethodAnalysis
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.DialogWrapper
 import java.awt.ComponentOrientation
@@ -31,7 +34,6 @@ internal object AnalysisCddIcpReportFactory : CddIcpReportFactory {
                 appendLine("ICP: ${formatNumber(classAnalysis.totalIcp)}")
                 appendLine("Over Limit: ${classAnalysis.isOverLimit}")
                 appendLine("Line Range: ${classAnalysis.lineRange.start}-${classAnalysis.lineRange.endInclusive}")
-                appendLine("SLOC: ${slocText(classAnalysis.sloc)}")
                 appendBreakdown(classAnalysis.icpBreakdown)
             }.trimEnd()
         )
@@ -45,16 +47,10 @@ internal object AnalysisCddIcpReportFactory : CddIcpReportFactory {
                 appendLine("Class: ${methodAnalysis.className}")
                 appendLine("Name: ${methodAnalysis.name}")
                 appendLine("ICP: ${formatNumber(methodAnalysis.totalIcp)}")
-                appendLine("Over SLOC Limit: ${methodAnalysis.isOverSlocLimit}")
                 appendLine("Line Range: ${methodAnalysis.lineRange.start}-${methodAnalysis.lineRange.endInclusive}")
-                appendLine("SLOC: ${slocText(methodAnalysis.sloc)}")
                 appendBreakdown(methodAnalysis.icpBreakdown)
             }.trimEnd()
         )
-    }
-
-    private fun slocText(sloc: SlocMetrics): String {
-        return "${sloc.codeOnly}/${sloc.total} (with comments: ${sloc.withComments}, comments: ${sloc.comments}, blank: ${sloc.blankLines})"
     }
 
     private fun StringBuilder.appendBreakdown(breakdown: Map<IcpType, List<IcpInstance>>) {

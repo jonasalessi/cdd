@@ -20,12 +20,6 @@ class XmlReporter : ReportGenerator {
                 <totalIcp>${analysis.totalIcp}</totalIcp>
                 <averageIcp>${analysis.averageIcp}</averageIcp>
               </summary>
-              <slocMetrics>
-                <totalSloc>${analysis.slocMetrics.totalSloc}</totalSloc>
-                <averageSlocPerClass>${analysis.slocMetrics.averageSlocPerClass}</averageSlocPerClass>
-                <averageSlocPerMethod>${analysis.slocMetrics.averageSlocPerMethod}</averageSlocPerMethod>
-                <icpSlocCorrelation>${analysis.icpSlocCorrelation}</icpSlocCorrelation>
-              </slocMetrics>
               <icpDistribution>
                 ${
             analysis.icpDistribution

@@ -8,7 +8,6 @@ Intrinsic Cognitive Point (ICP).
 
 - **Multi-Language Support**: Analyzes both **Java** and **Kotlin** source code.
 - **ICP Calculation**: Measures complexity based on branching logic, coupling, and exception handling.
-- **SLOC Metrics**: Provides physical Source Lines of Code distribution.
 - **Actionable Recommendations**: Suggests refactoring targets based on complexity thresholds.
 - **Multiple Output Formats**: Supports Console, JSON, XML, and Markdown.
 

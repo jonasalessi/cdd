@@ -62,12 +62,10 @@ class AnalyzeKotlinFileActionTest : BasePlatformTestCase() {
                             className = "Sample",
                             lineRange = IntRangeSerializable(1, 1),
                             totalIcp = 1.0,
-                            icpBreakdown = emptyMap(),
-                            sloc = SlocMetrics(1, 1, 1, 0, 0)
+                            icpBreakdown = emptyMap()
                         )
                     ),
-                    isOverLimit = false,
-                    sloc = SlocMetrics(1, 1, 1, 0, 0)
+                    isOverLimit = false
                 )
             ),
             totalIcp = 2.0

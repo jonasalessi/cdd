@@ -17,7 +17,7 @@ All UI-related code is organized under `src/main/kotlin/com/cdd/ui/`.
 
 ## Settings Scope: Project vs. Personal
 
-`cdd.yaml` stores the project's CDD definition (ICP limits, weights, coupling, filtering, SLOC) — shared across the team,
+`cdd.yaml` stores the project's CDD definition (ICP limits, weights, coupling, filtering) — shared across the team,
 checked into VCS, owned by `CddConfigService`.
 
 Personal/IDE preferences (inlay font size, inlay position, and similar appearance/behavior toggles) must **NOT** be

@@ -68,6 +68,7 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
             )
         }
     }
+
     private fun analyzeClass(ktClass: KtClass, fullContent: String, file: File, config: CddConfig): ClassAnalysis {
         val ktFile = ktClass.containingFile as KtFile
         val weights = resolveWeights(file, config)
@@ -88,26 +89,21 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
         val methods = mutableListOf<MethodAnalysis>()
         ktClass.accept(object : KtTreeVisitorVoid() {
             override fun visitNamedFunction(function: KtNamedFunction) {
-                // Only process methods directly in this class
                 if (function.parent == ktClass || function.parent is KtClassBody && function.parent.parent == ktClass) {
                     val methodStart = getLineNumber(fullContent, function.startOffset)
                     val methodEnd = getLineNumber(fullContent, function.textRange.endOffset)
                     val methodRange = methodStart..methodEnd
 
                     val methodIcpInstances = classIcpInstances.filter { it.line in methodRange }
-                    val methodSloc = calculateSloc(fullContent, methodStart, methodEnd)
-                    
                     val methodBreakdown = methodIcpInstances.groupBy { it.type }
-                    
+
                     methods.add(
                         MethodAnalysis(
                             name = function.name ?: "Unknown",
                             className = ktClass.name ?: "Unknown",
                             lineRange = methodRange.toSerializable(),
                             totalIcp = methodIcpInstances.sumOf { it.weight },
-                            icpBreakdown = methodBreakdown,
-                            sloc = methodSloc,
-                            isOverSlocLimit = methodSloc.codeOnly > config.sloc.methodLimit
+                            icpBreakdown = methodBreakdown
                         )
                     )
                 }
@@ -121,8 +117,7 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
             totalIcp = totalIcp,
             icpBreakdown = classIcpBreakdown,
             methods = methods,
-            isOverLimit = overLimit,
-            sloc = calculateSloc(fullContent, startLine, endLine)
+            isOverLimit = overLimit
         )
     }
 
@@ -130,50 +125,6 @@ class KotlinAnalyzer : AbstractLanguageAnalyzer() {
         if (offset < 0) return 1
         val safeOffset = offset.coerceAtMost(content.length)
         return content.substring(0, safeOffset).count { it == '\n' } + 1
-    }
-
-    private fun calculateSloc(fullContent: String, startLine: Int, endLine: Int): SlocMetrics {
-        val allLines = fullContent.lines()
-        val rangeStart = (startLine - 1).coerceAtLeast(0)
-        val rangeEnd = (endLine - 1).coerceAtMost(allLines.size - 1)
-
-        if (rangeStart > rangeEnd) return SlocMetrics(0, 0, 0, 0, 0)
-
-        val targetLines = allLines.subList(rangeStart, rangeEnd + 1)
-
-        var total = 0
-        var codeOnly = 0
-        var comments = 0
-        var blankLines = 0
-
-        var inBlockComment = false
-
-        targetLines.forEach { line ->
-            total++
-            val trimmed = line.trim()
-
-            if (trimmed.isEmpty()) {
-                blankLines++
-            } else if (trimmed.startsWith("//")) {
-                comments++
-            } else if (trimmed.startsWith("/*")) {
-                comments++
-                if (!trimmed.endsWith("*/")) inBlockComment = true
-            } else if (inBlockComment) {
-                comments++
-                if (trimmed.endsWith("*/")) inBlockComment = false
-            } else {
-                codeOnly++
-            }
-        }
-
-        return SlocMetrics(
-            total = total,
-            codeOnly = codeOnly,
-            withComments = codeOnly + comments,
-            comments = comments,
-            blankLines = blankLines
-        )
     }
 
     override fun stripComments(line: String): String {

@@ -1,6 +1,5 @@
 package com.cdd.core.config
 
-import com.cdd.domain.IcpType
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -24,14 +23,6 @@ data class InternalCouplingConfig(
 
 
 /**
- * Configuration for SLOC (Source Lines of Code) metrics.
- */
-@Serializable
-data class SlocConfig(
-    val methodLimit: Int = 24
-)
-
-/**
  * Configuration for reporting options.
  */
 @Serializable
@@ -52,7 +43,6 @@ data class CddConfig(
     val internalCoupling: InternalCouplingConfig = InternalCouplingConfig(),
     val include: List<String> = emptyList(),
     val exclude: List<String> = emptyList(),
-    val sloc: SlocConfig = SlocConfig(),
     @SerialName("reporter")
     val reporting: ReportingConfig = ReportingConfig()
 ) {
@@ -84,7 +74,6 @@ data class CddConfig(
             internalCoupling = if (other.internalCoupling != InternalCouplingConfig()) other.internalCoupling else this.internalCoupling,
             include = if (other.include.isNotEmpty()) other.include else this.include,
             exclude = if (other.exclude.isNotEmpty()) other.exclude else this.exclude,
-            sloc = if (other.sloc != SlocConfig()) other.sloc else this.sloc,
             reporting = if (other.reporting != ReportingConfig()) other.reporting else this.reporting
         )
     }

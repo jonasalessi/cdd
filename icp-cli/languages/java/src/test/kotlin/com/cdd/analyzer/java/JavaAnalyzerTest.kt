@@ -75,13 +75,4 @@ class JavaAnalyzerTest : FunSpec({
         internal.size shouldBe 2
     }
 
-    test("should calculate SLOC metrics correctly") {
-        val file = File("src/test/resources/java-samples/SampleBranches.java")
-        val result = analyzer.analyze(file, config)
-        val classAnalysis = result.classes.first()
-
-        classAnalysis.sloc.total shouldBe 37
-        classAnalysis.sloc.codeOnly shouldBe 34
-        classAnalysis.sloc.blankLines shouldBe 3
-    }
 })

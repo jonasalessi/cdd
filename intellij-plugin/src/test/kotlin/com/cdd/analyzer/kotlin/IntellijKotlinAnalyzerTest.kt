@@ -98,15 +98,6 @@ class IntellijKotlinAnalyzerTest : BasePlatformTestCase() {
         assertEquals(3, classAnalysis.icpBreakdown[IcpType.INTERNAL_COUPLING]?.size)
     }
 
-    fun testShouldComputeNonZeroSlocMetrics() {
-        val result = analyzeFixture("kotlin-samples/SampleConstructs.kt")
-        val classAnalysis = result.classes.single { it.name == "SampleConstructs" }
-
-        assertTrue(classAnalysis.sloc.total > 0)
-        assertTrue(classAnalysis.sloc.codeOnly > 0)
-        assertTrue(classAnalysis.methods.all { it.sloc.total > 0 })
-    }
-
     fun testShouldStripInlineAndBlockCommentsLikeCliAnalyzer() {
         val analyzer = IntellijKotlinAnalyzer(project)
 

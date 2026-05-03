@@ -6,7 +6,6 @@ import com.cdd.domain.*
 import org.slf4j.LoggerFactory
 import spoon.Launcher
 import spoon.reflect.declaration.CtClass
-import spoon.reflect.declaration.CtElement
 import java.io.File
 
 class JavaAnalyzer : AbstractLanguageAnalyzer() {
@@ -51,6 +50,7 @@ class JavaAnalyzer : AbstractLanguageAnalyzer() {
         launcher.addInputResource(file.absolutePath)
         return launcher
     }
+
     private fun analyzeClass(ctClass: CtClass<*>, config: CddConfig): ClassAnalysis {
         val file = ctClass.position?.file ?: File("unknown")
         val weights = resolveWeights(file, config)
@@ -59,7 +59,7 @@ class JavaAnalyzer : AbstractLanguageAnalyzer() {
 
         val classIcpInstances = scanner.icpInstances.values.flatten()
         val classIcpBreakdown = classIcpInstances.groupBy { it.type }
-        
+
         val totalIcp = classIcpInstances.sumOf { it.weight }
         val classLimit = resolveIcpLimit(file, config) ?: Double.MAX_VALUE
         val overLimit = totalIcp > classLimit
@@ -68,15 +68,13 @@ class JavaAnalyzer : AbstractLanguageAnalyzer() {
             val methodRange = ctMethod.position.line..ctMethod.position.endLine
             val methodIcpInstances = classIcpInstances.filter { it.line in methodRange }
             val methodIcpBreakdown = methodIcpInstances.groupBy { it.type }
-            
+
             MethodAnalysis(
                 name = ctMethod.simpleName,
                 className = ctClass.simpleName,
                 lineRange = methodRange.toSerializable(),
                 totalIcp = methodIcpInstances.sumOf { it.weight },
-                icpBreakdown = methodIcpBreakdown,
-                sloc = calculateSlocOf(ctMethod),
-                isOverSlocLimit = false 
+                icpBreakdown = methodIcpBreakdown
             )
         }
 
@@ -89,62 +87,7 @@ class JavaAnalyzer : AbstractLanguageAnalyzer() {
             totalIcp = totalIcp,
             icpBreakdown = classIcpBreakdown,
             methods = methods,
-            isOverLimit = overLimit,
-            sloc = calculateSlocOf(ctClass)
-        )
-    }
-
-    private fun calculateSlocOf(ctElement: CtElement): SlocMetrics {
-        return try {
-            val position = ctElement.position
-            if (position.isValidPosition) {
-                val content = position.compilationUnit?.originalSourceCode ?: ""
-                // Add safe guard for endLine > startLine
-                val endLine = if (position.endLine >= position.line) position.endLine else position.line
-                calculateSloc(content, position.line, endLine)
-            } else {
-                SlocMetrics(0, 0, 0, 0, 0)
-            }
-        } catch (e: Exception) {
-            SlocMetrics(0, 0, 0, 0, 0)
-        }
-    }
-
-    private fun calculateSloc(fullContent: String, startLine: Int, endLine: Int): SlocMetrics {
-        val lines = fullContent.lines().subList(startLine - 1, endLine)
-
-        var total = 0
-        var codeOnly = 0
-        var comments = 0
-        var blankLines = 0
-
-        var inBlockComment = false
-
-        lines.forEach { line ->
-            total++
-            val trimmed = line.trim()
-
-            if (trimmed.isEmpty()) {
-                blankLines++
-            } else if (trimmed.startsWith("//")) {
-                comments++
-            } else if (trimmed.startsWith("/*")) {
-                comments++
-                if (!trimmed.endsWith("*/")) inBlockComment = true
-            } else if (inBlockComment) {
-                comments++
-                if (trimmed.endsWith("*/")) inBlockComment = false
-            } else {
-                codeOnly++
-            }
-        }
-
-        return SlocMetrics(
-            total = total,
-            codeOnly = codeOnly,
-            withComments = codeOnly + comments,
-            comments = comments,
-            blankLines = blankLines
+            isOverLimit = overLimit
         )
     }
 

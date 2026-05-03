@@ -24,8 +24,7 @@ data class ClassAnalysis(
     val totalIcp: Double,
     val icpBreakdown: Map<IcpType, List<IcpInstance>>,
     val methods: List<MethodAnalysis>,
-    val isOverLimit: Boolean,
-    val sloc: SlocMetrics
+    val isOverLimit: Boolean
 )
 
 /**
@@ -37,21 +36,7 @@ data class MethodAnalysis(
     val className: String,
     val lineRange: IntRangeSerializable,
     val totalIcp: Double,
-    val icpBreakdown: Map<IcpType, List<IcpInstance>>,
-    val sloc: SlocMetrics,
-    val isOverSlocLimit: Boolean = false
-)
-
-/**
- * SLOC (Source Lines of Code) metrics.
- */
-@Serializable
-data class SlocMetrics(
-    val total: Int,
-    val codeOnly: Int,
-    val withComments: Int,
-    val comments: Int,
-    val blankLines: Int
+    val icpBreakdown: Map<IcpType, List<IcpInstance>>
 )
 
 /**
