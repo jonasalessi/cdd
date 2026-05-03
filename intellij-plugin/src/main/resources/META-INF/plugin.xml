@@ -20,8 +20,13 @@
         <actionOnSaveInfoProvider implementation="com.cdd.ui.settings.tools.actionsOnSave.CddActionOnSaveInfoProvider"/>
 
         <projectService serviceImplementation="com.cdd.ui.settings.tools.cdd.CddConfigService"/>
+        <applicationService serviceImplementation="com.cdd.ui.settings.tools.inlay.CddInlaySettingsService"/>
         <projectConfigurable parentId="tools" instance="com.cdd.ui.settings.tools.cdd.CddSettingsConfigurable"
                              id="com.cdd.ui.settings.tools.cdd.CddSettingsConfigurable" displayName="CDD"/>
+        <applicationConfigurable parentId="com.cdd.ui.settings.tools.cdd.CddSettingsConfigurable"
+                                 instance="com.cdd.ui.settings.tools.inlay.CddInlaySettingsConfigurable"
+                                 id="com.cdd.ui.settings.tools.inlay.CddInlaySettingsConfigurable"
+                                 displayName="Inlay Hints"/>
     </extensions>
 
     <actions>

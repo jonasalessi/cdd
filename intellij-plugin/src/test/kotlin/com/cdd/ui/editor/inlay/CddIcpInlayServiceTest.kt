@@ -1,6 +1,9 @@
 package com.cdd.ui.editor.inlay
 
 import com.cdd.domain.*
+import com.cdd.ui.settings.tools.inlay.CddInlayPosition
+import com.cdd.ui.settings.tools.inlay.CddInlaySettingsService
+import com.cdd.ui.settings.tools.inlay.CddInlaySettingsState
 import com.intellij.openapi.editor.ex.EditorEx
 import com.intellij.testFramework.fixtures.LightPlatformCodeInsightFixture4TestCase
 import java.awt.Cursor
@@ -9,9 +12,15 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Test
 
 class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
+
+    @Before
+    fun resetInlaySettings() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState())
+    }
     @Test
     fun `should render class and method inlays`() {
         val psiFile = myFixture.configureByText(
@@ -192,6 +201,96 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
     }
 
     @Test
+    fun `should place inlays after line end when position is inline`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(position = CddInlayPosition.INLINE))
+        val psiFile = myFixture.configureByText("Sample.kt", "class Sample {\n    fun first() {}\n}\n")
+
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        assertTrue(afterLineEndCddInlays().isNotEmpty())
+        assertTrue(blockCddInlays().isEmpty())
+    }
+
+    @Test
+    fun `should place inlays above line when position is above`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(position = CddInlayPosition.ABOVE))
+        val psiFile = myFixture.configureByText("Sample.kt", "class Sample {\n    fun first() {}\n}\n")
+
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        assertTrue(blockCddInlays().isNotEmpty())
+        assertTrue(afterLineEndCddInlays().isEmpty())
+    }
+
+    @Test
+    fun `should align above block inlays with line indentation`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(position = CddInlayPosition.ABOVE))
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+                fun second() {}
+            }
+            """.trimIndent()
+        )
+
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        val classRenderer = blockCddInlays()
+            .map { it.renderer as CddIcpTextRenderer }
+            .first { it.text.startsWith("Class ICP") }
+        val methodRenderer = blockCddInlays()
+            .map { it.renderer as CddIcpTextRenderer }
+            .first { it.text.startsWith("ICP: 1") }
+        assertEquals(0, classRenderer.leftMargin)
+        assertTrue(methodRenderer.leftMargin > 0)
+    }
+
+    @Test
+    fun `should use zero left margin for inline inlays`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(position = CddInlayPosition.INLINE))
+        val psiFile = myFixture.configureByText(
+            "Sample.kt",
+            """
+            class Sample {
+                fun first() {}
+                fun second() {}
+            }
+            """.trimIndent()
+        )
+
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        val methodRenderer = afterLineEndCddInlays()
+            .map { it.renderer as CddIcpTextRenderer }
+            .first { it.text.startsWith("ICP: 1") }
+        assertEquals(0, methodRenderer.leftMargin)
+    }
+
+    @Test
+    fun `should dispose block inlays on clear`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(position = CddInlayPosition.ABOVE))
+        val psiFile = myFixture.configureByText("Sample.kt", "class Sample {\n    fun first() {}\n}\n")
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        EditorCddIcpInlayService.clearAll(project)
+
+        assertTrue(blockCddInlays().isEmpty())
+    }
+
+    @Test
+    fun `should render with font size from settings`() {
+        CddInlaySettingsService.getInstance().loadState(CddInlaySettingsState(fontSize = 24, position = CddInlayPosition.INLINE))
+        val psiFile = myFixture.configureByText("Sample.kt", "class Sample {\n    fun first() {}\n}\n")
+
+        EditorCddIcpInlayService.render(project, psiFile.virtualFile, sampleResult())
+
+        val renderer = afterLineEndCddInlays().first().renderer as CddIcpTextRenderer
+        assertEquals(24, renderer.font(myFixture.editor).size)
+    }
+
+    @Test
     fun `should clear all inlays from open editors`() {
         val psiFile = myFixture.configureByText(
             "Sample.kt",
@@ -213,6 +312,14 @@ class CddIcpInlayServiceTest : LightPlatformCodeInsightFixture4TestCase() {
             .getAfterLineEndElementsInRange(0, myFixture.editor.document.textLength)
             .mapNotNull { (it.renderer as? CddIcpTextRenderer)?.text }
     }
+
+    private fun afterLineEndCddInlays() = myFixture.editor.inlayModel
+        .getAfterLineEndElementsInRange(0, myFixture.editor.document.textLength)
+        .filter { it.renderer is CddIcpTextRenderer }
+
+    private fun blockCddInlays() = myFixture.editor.inlayModel
+        .getBlockElementsInRange(0, myFixture.editor.document.textLength)
+        .filter { it.renderer is CddIcpTextRenderer }
 
     private fun sampleResult(): AnalysisResult {
         return AnalysisResult(

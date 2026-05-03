@@ -3,6 +3,8 @@ package com.cdd.ui.editor.inlay
 import com.cdd.domain.AnalysisResult
 import com.cdd.domain.ClassAnalysis
 import com.cdd.domain.MethodAnalysis
+import com.cdd.ui.settings.tools.inlay.CddInlayPosition
+import com.cdd.ui.settings.tools.inlay.CddInlaySettingsService
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorCustomElementRenderer
 import com.intellij.openapi.editor.Inlay
@@ -59,38 +61,69 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
     }
 
     internal fun clear(editor: Editor) {
+        val textLength = editor.document.textLength
         editor.inlayModel
-            .getAfterLineEndElementsInRange(0, editor.document.textLength)
+            .getAfterLineEndElementsInRange(0, textLength)
+            .filter { it.renderer is CddIcpTextRenderer }
+            .forEach(Inlay<*>::dispose)
+        editor.inlayModel
+            .getBlockElementsInRange(0, textLength)
             .filter { it.renderer is CddIcpTextRenderer }
             .forEach(Inlay<*>::dispose)
     }
 
     private fun addHints(editor: Editor, result: AnalysisResult) {
+        val position = CddInlaySettingsService.getInstance().state.position
         result.classes.forEach { classAnalysis ->
             addHint(
                 editor,
                 classAnalysis.lineRange.start,
                 classHintText(classAnalysis),
-                reportFactory.createClassReport(classAnalysis)
+                reportFactory.createClassReport(classAnalysis),
+                position
             )
             classAnalysis.methods.forEach { methodAnalysis ->
                 addHint(
                     editor,
                     methodAnalysis.lineRange.start,
                     methodHintText(methodAnalysis),
-                    reportFactory.createMethodReport(methodAnalysis)
+                    reportFactory.createMethodReport(methodAnalysis),
+                    position
                 )
             }
         }
     }
 
-    private fun addHint(editor: Editor, lineNumber: Int, text: String, report: CddIcpReport) {
+    private fun addHint(editor: Editor, lineNumber: Int, text: String, report: CddIcpReport, position: CddInlayPosition) {
         val zeroBasedLine = lineNumber - 1
         if (zeroBasedLine !in 0 until editor.document.lineCount) {
             return
         }
-        val offset = editor.document.getLineEndOffset(zeroBasedLine)
-        editor.inlayModel.addAfterLineEndElement(offset, false, CddIcpTextRenderer(text, report))
+        when (position) {
+            CddInlayPosition.INLINE -> {
+                val offset = editor.document.getLineEndOffset(zeroBasedLine)
+                editor.inlayModel.addAfterLineEndElement(offset, false, CddIcpTextRenderer(text, report))
+            }
+            CddInlayPosition.ABOVE -> {
+                val offset = editor.document.getLineStartOffset(zeroBasedLine)
+                val leftMargin = computeLineIndentPixels(editor, zeroBasedLine)
+                editor.inlayModel.addBlockElement(offset, false, true, 0, CddIcpTextRenderer(text, report, leftMargin))
+            }
+        }
+    }
+
+    private fun computeLineIndentPixels(editor: Editor, zeroBasedLine: Int): Int {
+        val document = editor.document
+        val lineStart = document.getLineStartOffset(zeroBasedLine)
+        val lineEnd = document.getLineEndOffset(zeroBasedLine)
+        val chars = document.charsSequence
+        var firstNonWs = lineStart
+        while (firstNonWs < lineEnd && chars[firstNonWs].isWhitespace()) {
+            firstNonWs++
+        }
+        if (firstNonWs == lineStart) return 0
+        val visual = editor.offsetToVisualPosition(firstNonWs)
+        return editor.visualPositionToXY(visual).x
     }
 
     private fun classHintText(classAnalysis: ClassAnalysis): String {
@@ -152,11 +185,12 @@ internal object EditorCddIcpInlayService : CddIcpInlayService {
 
 internal class CddIcpTextRenderer(
     internal val text: String,
-    internal val report: CddIcpReport
+    internal val report: CddIcpReport,
+    internal val leftMargin: Int = 0
 ) : EditorCustomElementRenderer {
     override fun calcWidthInPixels(inlay: Inlay<*>): Int {
         val metrics = inlay.editor.contentComponent.getFontMetrics(font(inlay.editor))
-        return metrics.stringWidth(text)
+        return leftMargin + metrics.stringWidth(text)
     }
 
     override fun paint(inlay: Inlay<*>, g: Graphics, targetRegion: Rectangle, textAttributes: TextAttributes) {
@@ -165,12 +199,17 @@ internal class CddIcpTextRenderer(
         val isHovered = editor.getUserData(EditorCddIcpInlayService.hoveredInlayKey) === inlay
         g.color = if (isHovered) HOVER_COLOR else JBColor.GRAY
         val baselineY = targetRegion.y + editor.ascent
-        g.drawString(text, targetRegion.x, baselineY)
+        val textX = targetRegion.x + leftMargin
+        g.drawString(text, textX, baselineY)
         if (isHovered) {
             val width = g.fontMetrics.stringWidth(text)
-            g.drawLine(targetRegion.x, baselineY + 1, targetRegion.x + width - 1, baselineY + 1)
+            g.drawLine(textX, baselineY + 1, textX + width - 1, baselineY + 1)
         }
     }
 
-    private fun font(editor: Editor) = editor.colorsScheme.getFont(EditorFontType.PLAIN)
+    internal fun font(editor: Editor): java.awt.Font {
+        val base = editor.colorsScheme.getFont(EditorFontType.PLAIN)
+        val size = CddInlaySettingsService.getInstance().state.fontSize
+        return base.deriveFont(size.toFloat())
+    }
 }
